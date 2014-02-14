@@ -24,12 +24,6 @@
 
 (def inboxes (ref {}))
 (def outboxes (ref {}))
-(def users (atom []))
-
-(defn create-user! [& args]
-  (let [toret (apply create-user args)]
-    (swap! users conj toret)
-    toret))
 
 (doseq [r [inboxes outboxes]]
   (add-watch r :state-watcher (fn [_ _ _ new-state]
@@ -40,6 +34,7 @@
                  
 
 (def feuer (create-user "feuer" "Feuer" "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220/imagex100x100.jpeg" :online))
+(def new-recipient (create-user "new" "moimaailma" "http://prong.arkku.net/MERPG_logolmio.png", :online))
 
 (defn create-message [sender-id msg receiver-id]
   {:pre [(in? (keys @inboxes) receiver-id)]}
@@ -86,7 +81,7 @@
                               rest (if (nil? rest) [] rest)
                               inbox (get-inbox! user-handle)]
                           (alter outboxes assoc user-handle rest)
-                          (alter inboxes assoc user-handle (conj (get @inboxes user-handle ) message))))
+                          (alter inboxes assoc (:receiver message) (conj (get @inboxes user-handle) message))))
                        (recur)))
         .start)
       (println "outbox-thread started for " user-handle))
@@ -114,38 +109,11 @@
   (if-let [ib (get-inbox (:receiver message))]
           (alter inboxes assoc (:receiver message) (->> (conj ib message)
                                                         (sort-by :time)
-                                                        reverse))))
-
-(defmacro while-let [[obj expr] & forms]
-  `(loop [~obj ~expr]
-    ~@forms
-    (if-let [next# ~expr]
-      (recur next#))))
-
-(comment
-  "This is a bloody stupid way to approach moving stuff from place A to B"
-  (defn empty-outboxes!
-  "Moves every message of every outbox to their recipient's inbox"
-  [users-atom]
-  (try
-    (loop []
-      (println "Began emptying outboxes...")
-      (doseq [user @users-atom]
-        (dosync
-         (println "User@empty-outboxes: " user)
-
-         ;;Tämä räjähtää tietysti, koska user on string eikä usermappi
-         (while-let [msg (pop-outbox! user)]
-                    (push-inbox! msg))))
-      (println "Emptyed everything! Recurring!")
-      (recur))
-    (catch Exception ex
-      (println "Caught thing: " ex)
-      (.printStackTrace ex) ))))
-                
-(do
-  (dosync
+                                                        reverse))))                
+(dosync
    (ref-set inboxes {})
    (ref-set outboxes {})
    (get-outbox! (:user-handle feuer))
-   (get-inbox! (:user-handle feuer))))
+   (get-inbox! (:user-handle feuer))
+   (get-outbox! (:user-handle new-recipient))
+   (get-inbox! (:user-handle new-recipient)))
