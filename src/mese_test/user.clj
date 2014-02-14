@@ -76,7 +76,20 @@
                          (in? user-handle))]
     (when-not outbox-exists
       (dosync
-       (alter outboxes assoc user-handle [])))
+       (alter outboxes assoc user-handle []))
+      (doto (Thread. (fn []
+                       (while (empty? (get @outboxes user-handle))
+                         (Thread/sleep 400))
+                       (println "Processing outbox of " user-handle)
+                       (dosync
+                        (let [[message & rest] (get @outboxes user-handle)
+                              rest (if (nil? rest) [] rest)
+                              inbox (get-inbox! user-handle)]
+                          (alter outboxes assoc user-handle rest)
+                          (alter inboxes assoc user-handle (conj (get @inboxes user-handle ) message))))
+                       (recur)))
+        .start)
+      (println "outbox-thread started for " user-handle))
     (get @outboxes user-handle)))
 
 (defmacro get-ob [[ob get-param] & forms]
@@ -109,7 +122,9 @@
     (if-let [next# ~expr]
       (recur next#))))
 
-(defn empty-outboxes!
+(comment
+  "This is a bloody stupid way to approach moving stuff from place A to B"
+  (defn empty-outboxes!
   "Moves every message of every outbox to their recipient's inbox"
   [users-atom]
   (try
@@ -126,8 +141,11 @@
       (recur))
     (catch Exception ex
       (println "Caught thing: " ex)
-      (.printStackTrace ex) )))
+      (.printStackTrace ex) ))))
                 
 (do
-  (get-outbox! (:user-handle feuer))
-  (get-inbox! (:user-handle feuer)))
+  (dosync
+   (ref-set inboxes {})
+   (ref-set outboxes {})
+   (get-outbox! (:user-handle feuer))
+   (get-inbox! (:user-handle feuer))))
