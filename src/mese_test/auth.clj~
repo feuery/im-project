@@ -1,0 +1,57 @@
+(ns mese-test.auth
+  (:require [mese-test.user :refer [create-user
+                                    get-outbox!
+                                    get-inbox!]]
+            [mese-test.util :refer [in?]]))
+
+(def Users (atom []))
+
+(defn sha-512 [data]
+  (let [md (. java.security.MessageDigest getInstance "sha-512")]
+    (. md update (.getBytes data))
+    (let [bytes (. md digest)]
+      (reduce #(str %1 (format "%02x" %2)) "" bytes))))
+
+(def feuer (create-user "feuer" "Feuer" "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220/imagex100x100.jpeg" :online (sha-512 "testisalasana")))
+(def new-recipient (create-user "new" "moimaailma" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana")))
+
+(do
+  (get-outbox! (:user-handle feuer))
+  (get-inbox! (:user-handle feuer))
+  (get-outbox! (:user-handle new-recipient))
+  (get-inbox! (:user-handle new-recipient)))
+
+(def user-db [feuer new-recipient])
+
+(defn find-user [user-db user-handle]
+  (or
+   (first (filter #(= (:user-handle %) user-handle) user-db))
+   false))
+
+(defn user-authenticates? [user-db username naked-password]
+  (let [password (sha-512 naked-password)
+        user (find-user user-db username)]
+    (= password (:password user))))
+
+(defn user-authenticates!?
+  "If this returns true, the user is marked logged in"
+  [username naked-password ip sessionid-promise]
+  (if (user-authenticates? user-db username naked-password)
+    (let [user (find-user user-db username)
+          session-ids (->> @Users
+                          (map (comp deref :sessions))
+                          flatten)]
+      (if-not (in? (map :user @Users) user)
+        (loop [session-id (rand-int Integer/MAX_VALUE)]
+          (if (in? session-ids session-id)
+            (recur (rand-int Integer/MAX_VALUE))
+            (do
+              (swap! Users conj {:user user :sessions (atom {session-id ip})})
+              (deliver sessionid-promise session-id))))
+        (let [{sessions :sessions} (-> #(= (:user %) user)
+                                       (filter @Users)
+                                       first)]
+          (swap! sessions 
+        
+      true)
+    false))

@@ -1,6 +1,7 @@
 (ns mese-test.user
   (:require [mese-test.util :refer [in?]]
             [clj-time.core :as time]
+;            [mese-test.auth :refer :all]
             [clojure.pprint :refer :all]
             [clj-time.coerce :as tc]))
 
@@ -14,10 +15,13 @@
                       :fake-offline
                       :real-offline])
 
-(defn create-user [user-handle username img-url state]
+(defn create-user
+  "This creates the user-molds, that can be users checked against"
+  [user-handle username img-url state pw-hash]
   {:pre [(in? possible-states state)]}
   {:user-handle user-handle 
-   :username username 
+   :username username
+   :password pw-hash
    :img-url img-url 
    :state state 
    :personal-message "This is a personal message"})
@@ -31,10 +35,6 @@
                             "inboxes"
                             "outboxes") " changed: ")
                  (pprint new-state))))
-                 
-
-(def feuer (create-user "feuer" "Feuer" "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220/imagex100x100.jpeg" :online))
-(def new-recipient (create-user "new" "moimaailma" "http://prong.arkku.net/MERPG_logolmio.png", :online))
 
 (defn create-message [sender-id msg receiver-id]
   {:pre [(in? (keys @inboxes) receiver-id)]}
@@ -112,8 +112,4 @@
                                                         reverse))))                
 (dosync
    (ref-set inboxes {})
-   (ref-set outboxes {})
-   (get-outbox! (:user-handle feuer))
-   (get-inbox! (:user-handle feuer))
-   (get-outbox! (:user-handle new-recipient))
-   (get-inbox! (:user-handle new-recipient)))
+   (ref-set outboxes {}))
