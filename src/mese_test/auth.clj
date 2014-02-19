@@ -2,6 +2,7 @@
   (:require [mese-test.user :refer [create-user
                                     get-outbox!
                                     get-inbox!]]
+            [clojure.pprint :refer :all]
             [mese-test.util :refer [in?]]))
 
 (def Users (atom []))
@@ -33,55 +34,60 @@
         user (find-user user-db username)]
     (= password (:password user))))
 
-(defn get-new-sessionid [session-ids]
-  (loop [session-id (rand-int Integer/MAX_VALUE)]
-    (if (in? session-ids session-id)
-      (recur (rand-int Integer/MAX_VALUE))
-      session-id)))
-
 (defn user-authenticates!?
   "If this returns true, the user is marked logged in"
-  [username naked-password ip sessionid-promise]
+  [username naked-password ip]
   (if (user-authenticates? user-db username naked-password)
-    (let [user (find-user user-db username)
-          session-ids (->> @Users
-                          (map (comp deref :sessions))
-                          flatten)
-          session-id (get-new-sessionid session-ids)]
+    (let [user (find-user user-db username)]
       (if-not (in? (map :user @Users) user)
         (do
           (println username " signed in for the first time")
-          (swap! Users conj {:user user :sessions (atom {session-id ip})}))
+          (swap! Users conj {:user user :sessions (atom {ip (System/currentTimeMillis)})}))
         (let [{sessions :sessions} (->> @Users
                                         (filter #(= (-> %
                                                         :user
                                                         :user-handle) username))
                                         first)]
           (println username " signed in again")
-          (swap! sessions assoc session-id ip)))
-      (deliver sessionid-promise session-id)
+          (swap! sessions assoc ip (System/currentTimeMillis))))
       true)
     false))
 
-(defn session-authenticates? [sessionid ip]
+(defn session-authenticates? [ip]
   (let [sessions (->> @Users
                       (map (comp deref :sessions))
-                      (reduce merge))]
-    (if (contains? sessions sessionid)
-      (println "sessions contains " sessionid)
+                      (reduce merge))
+        relevant-atom (->> @Users
+                            (map :sessions)
+                            (filter #(contains? @% ip))
+                            first) ;; Shame on you if signing twice from the same ip...
+        five-min-in-ms (* 5 60 1000)]
+    ;(println "(session-auths? " ip ")? " (contains? sessions ip))
+    (if (and (contains? sessions ip)
+         (< (- (System/currentTimeMillis) (get sessions ip))
+            five-min-in-ms))
       (do
-        (println "sessions " sessions " doesn't contain " sessionid)
-        (pprint sessions)
-        (println "sessioluokka: " (class sessions))))
-      
-    (if (= ip (get sessions sessionid))
-      (println "ip " ip " == " (get sessions sessionid))
-      (println "ip " ip " != " (get sessions sessionid)))
-    (and (contains? sessions sessionid)
-         (= ip (get sessions sessionid)))))
+        (swap! relevant-atom assoc ip (System/currentTimeMillis))
+        true)
+      false)))
+    
 
 (defn -people-logged-in [users]
   (->> users
        (map (comp :username :user))))
 
 (def people-logged-in #(-people-logged-in @Users))
+
+(defn -ip-to-sender-handle [users ip]
+  (->> users
+       (map (fn [param] {:user-handle (-> param :user :user-handle)
+               :ip-addresses (-> param
+                                 :sessions
+                                 deref
+                                 keys)}))
+       (filter #(in? (:ip-addresses %) ip))
+       first
+       :user-handle))
+
+(def ip-to-sender-handle #(-ip-to-sender-handle @Users %))
+                                                     
