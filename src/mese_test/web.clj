@@ -3,6 +3,8 @@
                                     session-authenticates?
                                     people-logged-in
                                     ip-to-sender-handle]]
+            [mese-test.user :refer [create-message
+                                    push-outbox!]]
             [clojure.string :as s]
             [ring.middleware.params :refer [wrap-params]]
             [ring.adapter.jetty :as jetty]
@@ -44,10 +46,20 @@
         {{receiver-handle :receiver-handle
           message "message"} :params
           ip :remote-addr}
-        (let [sender-handle (ip-to-sender-handle ip)]
-          {:status 200
-           :headers {"Content-Type" "text/plain; charset=utf-8"}
-           :body (str "Hello, " sender-handle)})))
+        (if (session-authenticates? ip)
+          (let [result (-> (ip-to-sender-handle ip)
+                           (create-message message receiver-handle)
+                           push-outbox!)]
+            (println "session authed")
+            (println "result " result)
+            {:status 200
+             :headers {"Content-Type" "text/plain; charset=utf-8"}
+             :body "{:success true}"})
+          (do
+            (println "session not authed from ip " ip)
+            {:status 403
+             :headers {"Content-Type" "text/plain; charset=utf-8"}
+             :body "{:success false }"}))))
          
 
 (defn -main [port]

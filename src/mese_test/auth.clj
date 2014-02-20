@@ -62,7 +62,11 @@
                             (filter #(contains? @% ip))
                             first) ;; Shame on you if signing twice from the same ip...
         five-min-in-ms (* 5 60 1000)]
-    ;(println "(session-auths? " ip ")? " (contains? sessions ip))
+    (println "(session-auths? " ip ")? " (contains? sessions ip))
+    (println "(<  " (- (System/currentTimeMillis) (get sessions ip)) "\n" five-min-in-ms ") ? "
+             (< (- (System/currentTimeMillis) (get sessions ip))
+                five-min-in-ms))
+    (println "(get sessions ip) " (get sessions ip))
     (if (and (contains? sessions ip)
          (< (- (System/currentTimeMillis) (get sessions ip))
             five-min-in-ms))
