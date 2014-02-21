@@ -48,8 +48,11 @@
                                                         :user
                                                         :user-handle) username))
                                         first)]
-          (println username " signed in again")
-          (swap! sessions assoc ip (System/currentTimeMillis))))
+          (println username " signed in again") ;;The next swap! is broken for some reason...
+          (println "does this get changed?")
+          (println "the old sessions: " @sessions)
+          (let [toret (swap! sessions assoc ip (System/currentTimeMillis))]
+            (println "the new sessions: " @sessions))))
       true)
     false))
 
