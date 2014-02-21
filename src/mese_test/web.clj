@@ -19,16 +19,18 @@
         :body (format "Hello %s from <h3 style=\"color: #FF0000;\">%s</h3>" user computer-id)})
   (GET "/login/:username/:password"
        {{username :username password :password} :params ip :remote-addr}
-
-       (if (user-authenticates!? username password ip)
-         (do
-           (println username " authenticated from ip " ip)
-           {:status 200
-            :headers {"Content-Type" "text/plain; charset=utf-8"}
-            :body "{:success true}"})
-         {:status 403
-          :headers {"Content-Type" "text/plain; charset=utf-8"}
-          :body "{:success false}"}))
+       (let [sessionid (promise)]
+         (if (user-authenticates!? username password ip sessionid)
+           (do
+             (println username " authenticated from ip " ip)
+             {:status 200
+              :headers {"Content-Type" "text/plain; charset=utf-8"}
+              :body (str "{:success true :session-id " @sessionid "}")})
+           (do
+             (println "Tough luck")
+             {:status 403
+              :headers {"Content-Type" "text/plain; charset=utf-8"}
+              :body "{:success false}"}))))
   (GET "/list-friends/"
        {ip :remote-addr}
        (let [vectorify #(str "[" % "]")]

@@ -34,27 +34,44 @@
         user (find-user user-db username)]
     (= password (:password user))))
 
+(def used-sessionids (atom []))
+
+(defn get-sessionid! []
+  (loop [sessid (rand-int Integer/MAX_VALUE)]
+    (if (in? @used-sessionids sessid)
+      (recur (rand-int Integer/MAX_VALUE))
+      (do
+        (swap! used-sessionids conj sessid)
+        sessid))))
+
 (defn user-authenticates!?
   "If this returns true, the user is marked logged in"
-  [username naked-password ip]
-  (if (user-authenticates? user-db username naked-password)
-    (let [user (find-user user-db username)]
-      (if-not (in? (map :user @Users) user)
-        (do
-          (println username " signed in for the first time")
-          (swap! Users conj {:user user :sessions (atom {ip (System/currentTimeMillis)})}))
-        (let [{sessions :sessions} (->> @Users
-                                        (filter #(= (-> %
-                                                        :user
-                                                        :user-handle) username))
-                                        first)]
-          (println username " signed in again") ;;The next swap! is broken for some reason...
-          (println "does this get changed?")
-          (println "the old sessions: " @sessions)
-          (let [toret (swap! sessions assoc ip (System/currentTimeMillis))]
-            (println "the new sessions: " @sessions))))
-      true)
-    false))
+  [username naked-password ip sessionid-promise]
+    (if (user-authenticates? user-db username naked-password)
+      (let [user (find-user user-db username)]
+        (if-not (in? (map :user @Users) user)
+          (let [session-id (get-sessionid!)]
+            (println username " signed in for the first time") 
+            (swap! Users conj {:user user :sessions (atom {ip {:last-call (System/currentTimeMillis)
+                                                               :session-id session-id}})})
+            (println "delivering " session-id)
+            (deliver sessionid-promise session-id))
+          (let [{sessions :sessions} (->> @Users
+                                          (filter #(= (-> %
+                                                          :user
+                                                          :user-handle) username))
+                                          first)
+                old-val (get @sessions ip)
+                new-val (assoc old-val :last-call (System/currentTimeMillis))]
+            (println username " signed in again") 
+            (let [toret (swap! sessions assoc ip new-val)]
+              (println "the new sessions: " @sessions)
+              (deliver sessionid-promise (:session-id new-val)))))
+        (println "Returning true...")
+        true)
+      (do
+        (println "Returning false")
+        false)))
 
 (defn session-authenticates? [ip]
   (let [sessions (->> @Users
