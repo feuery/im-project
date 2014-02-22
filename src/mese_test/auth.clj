@@ -3,7 +3,8 @@
                                     get-outbox!
                                     get-inbox!]]
             [clojure.pprint :refer :all]
-            [mese-test.util :refer [in?]]))
+            [mese-test.util :refer [in?
+                                    to-number]]))
 
 (def Users (atom []))
 
@@ -73,26 +74,37 @@
         (println "Returning false")
         false)))
 
-(defn session-authenticates? [ip]
-  (let [sessions (->> @Users
-                      (map (comp deref :sessions))
-                      (reduce merge))
-        relevant-atom (->> @Users
-                            (map :sessions)
-                            (filter #(contains? @% ip))
-                            first) ;; Shame on you if signing twice from the same ip...
-        five-min-in-ms (* 5 60 1000)]
-    (println "(session-auths? " ip ")? " (contains? sessions ip))
-    (println "(<  " (- (System/currentTimeMillis) (get sessions ip)) "\n" five-min-in-ms ") ? "
-             (< (- (System/currentTimeMillis) (get sessions ip))
-                five-min-in-ms))
-    (println "(get sessions ip) " (get sessions ip))
-    (if (and (contains? sessions ip)
-         (< (- (System/currentTimeMillis) (get sessions ip))
-            five-min-in-ms))
-      (do
-        (swap! relevant-atom assoc ip (System/currentTimeMillis))
-        true)
+(defn session-authenticates? [ip session-id]
+  (try
+    (let [sessions (->> @Users
+                        (map (comp deref :sessions))
+                        (reduce merge))
+          relevant-atom (->> @Users
+                             (map :sessions)
+                             (filter #(contains? @% ip))
+                             first) ;; Shame on you if signing twice from the same ip...
+          old-val (get @relevant-atom ip)
+          new-val (assoc old-val :last-call (System/currentTimeMillis))
+          five-min-in-ms (* 5 60 1000)]      
+      
+      (if (and (contains? sessions ip)
+               (< (- (System/currentTimeMillis)
+                     (-> sessions (get ip) :last-call))
+                  five-min-in-ms))
+        (try
+          (if (= (to-number session-id) (to-number (:session-id (get sessions ip))))
+            (do
+              (swap! relevant-atom assoc ip new-val)
+              true)
+            false)
+          (catch ClassCastException ex
+            (println "session-id " session-id " (" (class session-id) ") tai " (:session-id (get sessions ip)) " ( " (class (:session-id (get sessions ip))) ") kusee")
+            (throw ex)))
+        (do
+          (println "WTF?")
+          false)))
+    (catch Exception ex
+      (println ex)
       false)))
     
 

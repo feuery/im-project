@@ -11,6 +11,7 @@
             [compojure.core :refer :all]
             [compojure.route :as route]))
 
+;;Session-authenticatesissa kusee tyypit
 (defroutes app
   (GET "/get-inbox/:user/:computer-id" [user computer-id]
        (println "Hello world!")
@@ -31,19 +32,26 @@
              {:status 403
               :headers {"Content-Type" "text/plain; charset=utf-8"}
               :body "{:success false}"}))))
-  (GET "/list-friends/"
-       {ip :remote-addr}
+  (GET "/list-friends/:session-id"
+       {{session-id :session-id} :params
+        ip :remote-addr}
+       (println "Listing friends for " session-id ", " ip)
        (let [vectorify #(str "[" % "]")]
-         (if (session-authenticates? ip)
-           {:status 200
-            :headers {"Content-Type" "text/plain; charset=utf-8"}
-            :body (->> (people-logged-in)
-                       (map #(str "\"" % "\""))
-                       (s/join " ")
-                       vectorify)}
-           {:status 403
-            :headers {"Content-Type" "text/plain; charset=utf-8"}
-            :body "{:success false }"}))) ;;If you want to exclude yourself, please do it in the client-side
+         
+         (if (session-authenticates? ip session-id)
+           (do
+             (println "Session did auth")
+             {:status 200
+              :headers {"Content-Type" "text/plain; charset=utf-8"}
+              :body (->> (people-logged-in)
+                         (map #(str "\"" % "\""))
+                         (s/join " ")
+                         vectorify)})
+           (do
+             (println "Session didn't auth")
+             {:status 403
+              :headers {"Content-Type" "text/plain; charset=utf-8"}
+              :body "{:success false }"})))) ;;If you want to exclude yourself, please do it in the client-side
   (POST "/send-msg/receiver-handle/:receiver-handle"
         {{receiver-handle :receiver-handle
           message "message"} :params
