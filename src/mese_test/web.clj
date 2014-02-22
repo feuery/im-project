@@ -52,11 +52,12 @@
              {:status 403
               :headers {"Content-Type" "text/plain; charset=utf-8"}
               :body "{:success false }"})))) ;;If you want to exclude yourself, please do it in the client-side
-  (POST "/send-msg/receiver-handle/:receiver-handle"
+  (POST "/send-msg/:session-id/receiver-handle/:receiver-handle"
         {{receiver-handle :receiver-handle
+          session-id :session-id
           message "message"} :params
           ip :remote-addr}
-        (if (session-authenticates? ip)
+        (if (session-authenticates? ip session-id)
           (let [result (-> (ip-to-sender-handle ip)
                            (create-message message receiver-handle)
                            push-outbox!)]

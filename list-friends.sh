@@ -1,1 +1,1 @@
-curl -X get http://localhost:5000/list-friends/$1 #jee
+curl -X get http://localhost:5000/list-friends/$1 
