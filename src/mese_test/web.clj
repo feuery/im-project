@@ -70,7 +70,15 @@
             (println "session not authed from ip " ip)
             {:status 403
              :headers {"Content-Type" "text/plain; charset=utf-8"}
-             :body "{:success false }"}))))
+             :body "{:success false }"})))
+  (GET "/inbox/:session-id/"
+       {{session-id :session-id} :params
+        ip :remote-addr}
+       (if (session-authenticates? ip session-id)
+         ;;Merkkaa kaikkiin inboxin viesteihin että tähän session-id:hen ne on jo lähetetty
+         ;;Palauta ne responsena...
+         ;;Miten ref-transaktioon varmistaa että ne oikeasti vastaanotetaan?
+         ;;Ei varmaan mitenkään.... :P
          
 
 (defn -main [port]

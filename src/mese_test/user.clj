@@ -1,7 +1,7 @@
 (ns mese-test.user
   (:require [mese-test.util :refer [in?]]
             [clj-time.core :as time]
-;            [mese-test.auth :refer :all]
+            [mese-test.auth :refer [ip-to-sender-handle]]
             [clojure.pprint :refer :all]
             [clj-time.coerce :as tc]))
 
@@ -39,7 +39,31 @@
 (defn create-message [sender-id msg receiver-id]
   {:pre [(in? (keys @inboxes) receiver-id)]}
   {:sender sender-id :message msg :receiver receiver-id
-   :time (time/now)})
+   :time (time/now)
+   :sent-to-sessions []})
+
+(defn dump-outbox! [ip session-id]
+  (dosync
+   (let [receiver (ip-to-sender-handle ip)
+         receivers-inbox (get @inboxes receiver)
+         messages-to-send (->> receivers-inbox
+                               (filter #(not (in? (:sent-to-sessions %) session-id)))
+                               (sort-by :time))
+         receivers-new-inbox (map #(if (in? messages-to-send %)
+                                     (assoc % :sent-to-sessions
+                                            (conj (:sent-to-sessions %) session-id))
+                                     %) receivers-inbox)]
+;     (println "receiver: " receiver)
+;     (println "The old inbox ")
+;     (pprint receivers-inbox)
+;     (println "the new inbox ")
+;     (pprint receivers-new-inbox)
+     (alter inboxes assoc receiver receivers-new-inbox)
+
+     messages-to-send)))
+     
+    
+    
 
 
 (defn get-inbox
