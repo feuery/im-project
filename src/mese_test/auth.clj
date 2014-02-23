@@ -115,7 +115,7 @@
 (def people-logged-in #(-people-logged-in @Users))
 
 (defn -ip-to-sender-handle [users ip]
-  (->> users
+  (->> @Users
        (map (fn [param] {:user-handle (-> param :user :user-handle)
                :ip-addresses (-> param
                                  :sessions

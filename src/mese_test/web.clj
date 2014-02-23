@@ -4,6 +4,7 @@
                                     people-logged-in
                                     ip-to-sender-handle]]
             [mese-test.user :refer [create-message
+                                    dump-outbox!
                                     push-outbox!]]
             [clojure.string :as s]
             [ring.middleware.params :refer [wrap-params]]
@@ -70,15 +71,25 @@
             (println "session not authed from ip " ip)
             {:status 403
              :headers {"Content-Type" "text/plain; charset=utf-8"}
-             :body "{:success false }"}))))
-(comment  (GET "/inbox/:session-id/"
+             :body "{:success false }"})))
+  (GET "/inbox/:session-id/"
        {{session-id :session-id} :params
         ip :remote-addr}
-       (if (session-authenticates? ip session-id))))
-         ;;Merkkaa kaikkiin inboxin viesteihin että tähän session-id:hen ne on jo lähetetty
-         ;;Palauta ne responsena...
-         ;;Miten ref-transaktioon varmistaa että ne oikeasti vastaanotetaan?
-         ;;Ei varmaan mitenkään.... :P
+       (try
+         (let [receiver (ip-to-sender-handle ip)]
+           (if (session-authenticates? ip session-id)
+             {:status 200
+              :headers {"Content-Type" "text/plain; charset=utf-8"}
+              :body (str "{:success true
+:inbox " (dump-outbox! ip session-id receiver) "}")}
+             (do
+               (println "Auth fail")
+               {:status 403
+                :headers {"Content-Type" "text/plain; charset=utf-8"}
+                :body "{:success false }"})))
+         (catch Exception ex
+           (println "routes blew up")
+           (println ex)))))
          
 
 (defn -main [port]

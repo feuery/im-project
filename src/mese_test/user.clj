@@ -48,7 +48,8 @@
          receivers-inbox (get @inboxes receiver)
          messages-to-send (->> receivers-inbox
                                (filter #(not (in? (:sent-to-sessions %) session-id)))
-                               (sort-by :time))
+                               (sort-by :time)
+                               vec)
          receivers-new-inbox (map #(if (in? messages-to-send %)
                                      (assoc % :sent-to-sessions
                                             (conj (:sent-to-sessions %) session-id))
