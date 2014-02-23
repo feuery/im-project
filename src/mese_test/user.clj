@@ -1,7 +1,7 @@
 (ns mese-test.user
   (:require [mese-test.util :refer [in?]]
             [clj-time.core :as time]
-            [mese-test.auth :refer [ip-to-sender-handle]]
+;            [mese-test.auth :refer [ip-to-sender-handle]]
             [clojure.pprint :refer :all]
             [clj-time.coerce :as tc]))
 
@@ -42,9 +42,9 @@
    :time (time/now)
    :sent-to-sessions []})
 
-(defn dump-outbox! [ip session-id]
+(defn dump-outbox! [ip session-id receiver-name]
   (dosync
-   (let [receiver (ip-to-sender-handle ip)
+   (let [receiver receiver-name
          receivers-inbox (get @inboxes receiver)
          messages-to-send (->> receivers-inbox
                                (filter #(not (in? (:sent-to-sessions %) session-id)))
@@ -87,6 +87,20 @@
   [user-handle]
   (get @outboxes user-handle))
 
+(defn msg-dispatcher [user-handle]
+  (loop []
+    (while (empty? (get @outboxes user-handle))
+      (Thread/sleep 400))
+    (println "Doing processing outbox of " user-handle)
+    (let [[message & rest] (get @outboxes user-handle)
+          rest (if (nil? rest) [] rest)
+          inbox (get-inbox! (:receiver message))]
+      (println "Conjing " message " to " inbox)
+      (dosync
+       (alter outboxes assoc user-handle rest)
+       (alter inboxes assoc (:receiver message) (conj inbox message))))
+    (recur)))
+
 (defn get-outbox!
   "Creates the outbox if it doesn't exist"
   [user-handle]
@@ -96,17 +110,7 @@
     (when-not outbox-exists
       (dosync
        (alter outboxes assoc user-handle []))
-      (doto (Thread. (fn []
-                       (while (empty? (get @outboxes user-handle))
-                         (Thread/sleep 400))
-                       (println "Processing outbox of " user-handle)
-                       (dosync
-                        (let [[message & rest] (get @outboxes user-handle)
-                              rest (if (nil? rest) [] rest)
-                              inbox (get-inbox! user-handle)]
-                          (alter outboxes assoc user-handle rest)
-                          (alter inboxes assoc (:receiver message) (conj (get @inboxes user-handle) message))))
-                       (recur)))
+      (doto (Thread. (partial msg-dispatcher user-handle))
         .start)
       (println "outbox-thread started for " user-handle))
     (get @outboxes user-handle)))
