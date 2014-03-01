@@ -65,9 +65,16 @@
                 old-val (get @sessions ip)
                 new-val (assoc old-val :last-call (System/currentTimeMillis))]
             (println username " signed in again") 
-            (let [toret (swap! sessions assoc ip new-val)]
-              (println "the new sessions: " @sessions)
-              (deliver sessionid-promise (:session-id new-val)))))
+            (let [toret (swap! sessions assoc ip new-val)
+                  session-id-tmp (-> toret
+                                 (get ip))
+                  session-id (:session-id session-id-tmp)]
+              (comment              (println "the new sessions: " @sessions)
+              (println "toret" toret))
+              (println "Session-id: " session-id-tmp)
+              (println "sessid:     " session-id)
+                       
+              (deliver sessionid-promise session-id))))
         (println "Returning true...")
         true)
       (do

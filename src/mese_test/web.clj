@@ -14,6 +14,10 @@
 
 ;;Session-authenticatesissa kusee tyypit
 (defroutes app
+  (POST "/hello-world"
+        {{message "message"} :params
+          ip :remote-addr}
+        (format "%s said: %s" ip message))
   (GET "/get-inbox/:user/:computer-id" [user computer-id]
        (println "Hello world!")
        {:status 200
@@ -96,7 +100,6 @@
   (jetty/run-jetty (-> #'app wrap-params) {:port (Integer. port) :join? false}))
 
 (def server (-main 5000))
-
 ;; For interactive development:
 ;; (.stop server)
 ;; (def server (-main))
