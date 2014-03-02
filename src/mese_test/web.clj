@@ -25,18 +25,25 @@
         :body (format "Hello %s from <h3 style=\"color: #FF0000;\">%s</h3>" user computer-id)})
   (GET "/login/:username/:password"
        {{username :username password :password} :params ip :remote-addr}
-       (let [sessionid (promise)]
-         (if (user-authenticates!? username password ip sessionid)
-           (do
-             (println username " authenticated from ip " ip)
-             {:status 200
-              :headers {"Content-Type" "text/plain; charset=utf-8"}
-              :body (str "{:success true :session-id " @sessionid "}")})
-           (do
-             (println "Tough luck")
-             {:status 403
-              :headers {"Content-Type" "text/plain; charset=utf-8"}
-              :body "{:success false}"}))))
+       (try
+         (println "ip " ip)
+         (let [sessionid (promise)]
+           (if (user-authenticates!? username password ip sessionid)
+             (do
+               (println username " authenticated from ip " ip)
+               {:status 200
+                :headers {"Content-Type" "text/plain; charset=utf-8"}
+                :body (str "{:success true :session-id " @sessionid "}")})
+             (do
+               (println "Tough luck")
+               {:status 403
+                :headers {"Content-Type" "text/plain; charset=utf-8"}
+                :body "{:success false}"})))
+         (catch Exception ex
+           (println ex)
+           {:status 500
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body "{:success false } ; Infernal server error - admin is notified"})))
   (GET "/list-friends/:session-id"
        {{session-id :session-id} :params
         ip :remote-addr}
@@ -62,6 +69,7 @@
           session-id :session-id
           message "message"} :params
           ip :remote-addr}
+        (println "Tä? msg: " message ", receiver " receiver-handle)
         (if (session-authenticates? ip session-id)
           (let [result (-> (ip-to-sender-handle ip)
                            (create-message message receiver-handle)
@@ -79,6 +87,7 @@
   (GET "/inbox/:session-id/"
        {{session-id :session-id} :params
         ip :remote-addr}
+       (println "IP: " ip "; session-id " session-id)
        (try
          (let [receiver (ip-to-sender-handle ip)]
            (if (session-authenticates? ip session-id)
@@ -94,6 +103,7 @@
          (catch Exception ex
            (println "routes blew up")
            (println ex)))))
+  
          
 
 (defn -main [port]

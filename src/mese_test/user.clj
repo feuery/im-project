@@ -39,7 +39,7 @@
 (defn create-message [sender-id msg receiver-id]
   {:pre [(in? (keys @inboxes) receiver-id)]}
   {:sender sender-id :message msg :receiver receiver-id
-   :time (time/now)
+   :time (-> (time/now) tc/to-timestamp)
    :sent-to-sessions []})
 
 (defn dump-outbox! [ip session-id receiver-name]

@@ -48,6 +48,14 @@
 (defn user-authenticates!?
   "If this returns true, the user is marked logged in"
   [username naked-password ip sessionid-promise]
+  {:post [(let [{sessions :sessions} (->> @Users
+                                          (filter #(= (-> %
+                                                          :user
+                                                          :user-handle) username))
+                                          first)]
+            (every? #(= (count  %) 2) (vals @sessions)))]}
+            
+                                          
     (if (user-authenticates? user-db username naked-password)
       (let [user (find-user user-db username)]
         (if-not (in? (map :user @Users) user)
