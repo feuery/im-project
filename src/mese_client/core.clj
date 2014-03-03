@@ -1,16 +1,13 @@
 (ns mese-client.core
   (:require [seesaw.core :refer :all]
             [mese-client.ui.login-form :refer [get-credentsials]]
+            [mese-client.ui.main-form :refer [show-mainform]]
             [mese-test.util :refer [map-to-values]]
+            [mese-client.settings :refer [server-url]]
+            [mese-client.friends :refer [get-current-users]]
             [org.httpkit.client :as http]))
 
 (native!)
-
-(def server-url "http://localhost:5000/")
-
-(comment
-  (let [options {:form-params {:name "http-kit" :features ["async" "client" "server"]}}
-        {:keys [status error]} @(http/post "http://host.com/path1" options)]))
 
 (defn login
   "Returns false on failure, session-id on success."
@@ -50,5 +47,11 @@
     (Thread/sleep 5))
 
   (when (= @(:window-state login-map) :ready)
-    (let [{username :username password :password} (map-to-values login-map deref)]
-      (alert (str "Hello, " username)))))
+    (let [{username :username password :password} (map-to-values deref login-map)
+          session-id (login username password)]
+      (if session-id
+        (do
+          (println "sessid: " session-id)
+          (println "Showing mainform")
+          (show-mainform session-id))
+        (str "sessid-fail: " session-id)))))

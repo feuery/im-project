@@ -89,6 +89,36 @@
         (println "Returning false")
         false)))
 
+(defn session-timeout? [session-mapentry]
+  ;; Session-mapentry = [ip {:last-call :sessid}]
+  (try
+    (let [five-min-in-ms (* 5 60 1000)]
+      (< (- (System/currentTimeMillis)
+            (-> session-mapentry second :last-call))
+         five-min-in-ms))
+    (catch Exception ex
+      (println ex)
+      (println "Session-mapentry: " session-mapentry))))
+
+(defn -user-logged-in? [username users]
+  (try
+    (println "Username " username)
+    (let [username-found? (some #(= (-> % :user :user-handle) username) users)
+          _ (println "Täällä ollaan!")
+          sessions (->> users
+                        (filter #(= (-> % :user :user-handle) username))
+                        (map :sessions)
+                        (reduce merge)
+                        deref)
+          _ (println "sessions: " sessions)
+          session-timed-out? (every? session-timeout? sessions)]
+      (and username-found? session-timed-out?))
+    (catch NullPointerException ex
+      (println ex)
+      (throw ex))))
+
+(def user-logged-in? #(-user-logged-in? % @Users))
+        
 (defn session-authenticates? [ip session-id]
   (try
     (let [sessions (->> @Users
@@ -125,10 +155,19 @@
 
 (defn -people-logged-in [users]
   (->> users
-       (map (comp :username :user))))
+       (map (comp :user-handle :user))))
 
 (def people-logged-in #(-people-logged-in @Users))
 
+(defn -username->userhandle [users username]
+  (->> users
+       (filter #(= (-> % :user :user-handle) username))
+       first
+       :user
+       :username))
+
+(def username->userhandle #(-username->userhandle @Users %))
+   
 (defn -ip-to-sender-handle [users ip]
   (->> @Users
        (map (fn [param] {:user-handle (-> param :user :user-handle)

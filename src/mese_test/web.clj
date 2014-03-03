@@ -1,8 +1,10 @@
 (ns mese-test.web
   (:require [mese-test.auth :refer [user-authenticates!?
                                     session-authenticates?
+                                    username->userhandle
                                     people-logged-in
-                                    ip-to-sender-handle]]
+                                    ip-to-sender-handle
+                                    user-logged-in?]]
             [mese-test.user :refer [create-message
                                     dump-outbox!
                                     push-outbox!]]
@@ -47,23 +49,32 @@
   (GET "/list-friends/:session-id"
        {{session-id :session-id} :params
         ip :remote-addr}
-       (println "Listing friends for " session-id ", " ip)
-       (let [vectorify #(str "[" % "]")]
-         
-         (if (session-authenticates? ip session-id)
-           (do
-             (println "Session did auth")
-             {:status 200
-              :headers {"Content-Type" "text/plain; charset=utf-8"}
-              :body (->> (people-logged-in)
-                         (map #(str "\"" % "\""))
-                         (s/join " ")
-                         vectorify)})
-           (do
-             (println "Session didn't auth")
-             {:status 403
-              :headers {"Content-Type" "text/plain; charset=utf-8"}
-              :body "{:success false }"})))) ;;If you want to exclude yourself, please do it in the client-side
+       (try
+         (println "Listing friends for " session-id ", " ip)
+         (let [vectorify #(str "[" % "]")]
+           
+           (if (session-authenticates? ip session-id)
+             (do
+               (println "Session did auth")
+               {:status 200
+                :headers {"Content-Type" "text/plain; charset=utf-8"}
+                :body (->> (people-logged-in)
+                           (filter user-logged-in?)
+                           (map username->userhandle)
+                           (map #(str "\"" % "\""))
+                           (s/join " ")
+                           vectorify)})
+             (do
+               (println "Session didn't auth")
+               {:status 403
+                :headers {"Content-Type" "text/plain; charset=utf-8"}
+                :body "{:success false }"})))
+         (catch Exception ex
+           (clojure.pprint/pprint ex)
+           (println "Poikkeus list-friendsissa")
+           {:status 500
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body "{:success false } ; Infernal server error - admin is notified"}))) ;;If you want to exclude yourself, please do it in the client-side
   (POST "/send-msg/:session-id/receiver-handle/:receiver-handle"
         {{receiver-handle :receiver-handle
           session-id :session-id
