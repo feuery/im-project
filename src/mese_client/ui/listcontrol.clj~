@@ -1,0 +1,49 @@
+;;Binding doesn't work
+
+(ns mese-client.ui.listcontrol
+  (:require [seesaw.core :refer :all]
+            [seesaw.bind :as b]
+            [mese-test.util :refer [seq-in-seq? in?]]
+            [merpg.2D.core :as c]))
+
+(def user-keys [:user-handle :username :password :img-url :state :personal-message])
+(def possible-states [:online :busy :away :returning :lunch :fake-offline :real-offline])
+
+(defn state-to-color [state]
+  {:pre [(in? possible-states state)]}
+  (cond
+   (in? [:online] state) "#1AFF00"
+   (in? [:busy] state) "#FF0000"
+   (in? [:away :returning :lunch]) "FFA600"
+   :t "#999999"))
+
+(defn imgview [person-atom]
+  (let [our-buffer (c/image 120 120)
+        img (atom (c/image (:img-url @person-atom))) ;;If the url is changed, this has to change also...
+        state-avatar-component (canvas :size [120 :by 120]
+                                       :paint (fn [_ g]
+                                                (c/draw-to-surface
+                                                 our-buffer
+                                                 (c/with-color (state-to-color (:state @person-atom))
+                                                   (c/Rect 0 0 300 300 :fill? true)) ;;Fill the state-color
+                                                 (c/Draw @img [10 10])) ;;Draw to avatar
+                                                (.drawImage g our-buffer 0 0 nil)));;Draw the buffer!
+        toret (border-panel :west state-avatar-component
+                  :east (vertical-panel :items [(label :id :usrname :text (:username @person-atom))
+                                                (label :id :persmsg :text (:personal-message @person-atom))]))]
+    (b/bind person-atom (b/transform :username)  (b/property (select toret [:#usrname]) :text))
+    toret))
+                        
+
+(defn listcontrol [person-atom]
+  {:pre [seq-in-seq? user-keys (keys @person)]}
+  (horizontal-panel :items [
+
+(defn do-test [control]
+  (frame :width 320
+         :height 160
+         :on-close :dispose
+         :content control
+         :visible? true)
+  nil)
+      

@@ -3,6 +3,11 @@
 (defn in? [seq elm]
   (some #(= % elm) seq))
 
+(defn seq-in-seq? [subseq seq]
+  (->> subseq
+       (map (partial in? seq))
+       (reduce #(and %1 %2))))
+
 (defn to-number
   [Str]
   (cond

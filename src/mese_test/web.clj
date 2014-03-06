@@ -14,7 +14,7 @@
             [compojure.core :refer :all]
             [compojure.route :as route]))
 
-;;Session-authenticatesissa kusee tyypit
+
 (defroutes app
   (POST "/hello-world"
         {{message "message"} :params

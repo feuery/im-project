@@ -16,8 +16,8 @@
         window-state (atom :open :validator #(in? window-states %))
         
         f (frame :title "YOOL-IM (working title)"
-                 :width 640
-                 :height 480
+                 :width 300
+                 :height 150
                  :visible? true
                  :on-close :dispose
                  :listen [:window-closed (fn [_]
@@ -47,7 +47,7 @@
                   (add-watch a :jee (fn [_ _ _ new-val]
                                       (println "new-val is " new-val)))))
     
-    (-> f pack!)
+                                        ;    (-> f pack!)
 
     {:username username
      :password password
