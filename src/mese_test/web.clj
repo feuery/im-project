@@ -54,9 +54,11 @@
            (do
              (let [toret (->> (people-logged-in)
                               (filter user-logged-in?)
-                              vec
                               (map #(dissoc % :password))
-                              (map str))]
+;                              (map str)
+                              vec
+                              str)]
+               (println "Returning friends: " toret)
                {:status 200
                 :headers {"Content-Type" "text/plain; charset=utf-8"}
                 :body toret}))
@@ -109,7 +111,9 @@
                 :body "{:success false }"})))
          (catch Exception ex
            (println "routes blew up")
-           (println ex)))))
+           (println ex))))
+  (ANY "*" []
+       "Hello world! I'm online!"))
   
          
 

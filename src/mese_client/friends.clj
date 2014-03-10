@@ -5,9 +5,12 @@
 
 (defn get-current-users [session-id]
   (let [{body :body :as result} @(http/get (str server-url "list-friends/" session-id))]
-    (pprint result)
-    (println body)
+    ;; (println "Results: ")
+    ;; (pprint result)
+    ;(println "body: " body)
     (if-let [result (read-string body)]
       (if (map? result)
-        false
+        (do
+          (println "Result was a map: " result)
+          false)
         result))))
