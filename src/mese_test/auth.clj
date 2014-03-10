@@ -103,10 +103,10 @@
 (defn -user-logged-in? [username users]
   (try
     (println "Username " username)
-    (let [username-found? (some #(= (-> % :user :user-handle) username) users)
+    (let [username-found? (some #(= (-> % :user) username) users)
           _ (println "Täällä ollaan!")
           sessions (->> users
-                        (filter #(= (-> % :user :user-handle) username))
+                        (filter #(= (-> % :user) username))
                         (map :sessions)
                         (reduce merge)
                         deref)
@@ -155,7 +155,7 @@
 
 (defn -people-logged-in [users]
   (->> users
-       (map (comp :user-handle :user))))
+       (map :user)))
 
 (def people-logged-in #(-people-logged-in @Users))
 

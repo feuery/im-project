@@ -6,4 +6,5 @@
  "22.2.2014-aamu" {:hours-spent 2 :done "Yritetty toteuttaa inboxien dumppaamista asiakkaalle"}
  "23.2.2014" {:hours-spent 5 :done "Toteutettu inboxien dumppaus, ja korjattu viestien reititys git-commitin 4748edc mukaan"}
  "24.2.2014" {:hours-spent 1 :done "Hiottu clientin login-ikkunaa"}
- "28.2-3.3" {:hours-spent 10 :done "Säädetty get-friends-online systeemi, ja alettu tyylitellä varsinaista käyttöliittmää"}}
+ "28.2-3.3" {:hours-spent 10 :done "Säädetty get-friends-online systeemi, ja alettu tyylitellä varsinaista käyttöliittmää"}
+ "6.3.2014" {:hours-spent 4 :done "Clientin GUIta"}}

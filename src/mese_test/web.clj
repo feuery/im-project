@@ -14,11 +14,10 @@
             [compojure.core :refer :all]
             [compojure.route :as route]))
 
-
 (defroutes app
   (POST "/hello-world"
         {{message "message"} :params
-          ip :remote-addr}
+         ip :remote-addr}
         (format "%s said: %s" ip message))
   (GET "/get-inbox/:user/:computer-id" [user computer-id]
        (println "Hello world!")
@@ -55,15 +54,13 @@
            
            (if (session-authenticates? ip session-id)
              (do
-               (println "Session did auth")
-               {:status 200
-                :headers {"Content-Type" "text/plain; charset=utf-8"}
-                :body (->> (people-logged-in)
-                           (filter user-logged-in?)
-                           (map username->userhandle)
-                           (map #(str "\"" % "\""))
-                           (s/join " ")
-                           vectorify)})
+               (let [toret (->> (people-logged-in)
+                                (filter user-logged-in?)
+                                vec
+                                (map str))]
+                 {:status 200
+                  :headers {"Content-Type" "text/plain; charset=utf-8"}
+                  :body toret}))
              (do
                (println "Session didn't auth")
                {:status 403
