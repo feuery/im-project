@@ -49,23 +49,22 @@
        {{session-id :session-id} :params
         ip :remote-addr}
        (try
-         (println "Listing friends for " session-id ", " ip)
-         (let [vectorify #(str "[" % "]")]
-           
-           (if (session-authenticates? ip session-id)
-             (do
-               (let [toret (->> (people-logged-in)
-                                (filter user-logged-in?)
-                                vec
-                                (map str))]
-                 {:status 200
-                  :headers {"Content-Type" "text/plain; charset=utf-8"}
-                  :body toret}))
-             (do
-               (println "Session didn't auth")
-               {:status 403
+         (println "Listing friends for " session-id ", " ip)           
+         (if (session-authenticates? ip session-id)
+           (do
+             (let [toret (->> (people-logged-in)
+                              (filter user-logged-in?)
+                              vec
+                              (map #(dissoc % :password))
+                              (map str))]
+               {:status 200
                 :headers {"Content-Type" "text/plain; charset=utf-8"}
-                :body "{:success false }"})))
+                :body toret}))
+           (do
+             (println "Session didn't auth")
+             {:status 403
+              :headers {"Content-Type" "text/plain; charset=utf-8"}
+              :body "{:success false }"}))
          (catch Exception ex
            (clojure.pprint/pprint ex)
            (println "Poikkeus list-friendsissa")
