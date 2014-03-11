@@ -131,15 +131,15 @@
 
 (defn -user-logged-in? [username users]
   (try
-    (println "Username " username)
+;    (println "Username " username)
     (let [username-found? (some #(= (-> % :user) username) users)
-          _ (println "Täällä ollaan!")
+ ;         _ (println "Täällä ollaan!")
           sessions (->> users
                         (filter #(= (-> % :user) username))
                         (map :sessions)
                         (reduce merge)
                         deref)
-          _ (println "sessions: " sessions)
+  ;        _ (println "sessions: " sessions)
           session-timed-out? (every? session-timeout? sessions)]
       (and username-found? session-timed-out?))
     (catch NullPointerException ex
