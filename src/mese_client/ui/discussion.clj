@@ -47,7 +47,7 @@
    :t "#999999"))
 
 (defn discussion-form [session-id friend]
-  {:pre [(seq-in-seq? user-keys (keys friend))]}
+  {:pre [(seq-in-seq? user-keys (keys @friend))]}
   (try
     (println "Doing discussion")
     (let [form (frame
@@ -58,15 +58,15 @@
                 :content
                 (vertical-panel
                   :items
-                  [(label :text (str (:username friend) "    -    (" (-> friend :state str (s/replace #":" "")) ")") :font "ARIAL-BOLD-18")
-                   (label :text (:personal-message friend) :font "ARIAL-15")
+                  [(label :text (str (:username @friend) "    -    (" (-> @friend :state str (s/replace #":" "")) ")") :font "ARIAL-BOLD-18")
+                   (label :text (:personal-message @friend) :font "ARIAL-15")
                    (horizontal-panel
                     :items
-                    [(border-panel :north (-> friend
+                    [(border-panel :north (-> @friend
                                               :img-url
                                               (URL.)
                                               make-widget
-                                              (config! :background (state-to-color (:state friend))
+                                              (config! :background (state-to-color (:state @friend))
                                                        :size [100 :by 120]))
                                    :south "Oma kuvasi, tai jotain")
                      (top-bottom-split (text :multi-line? true :editable? false

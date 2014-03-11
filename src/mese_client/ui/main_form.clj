@@ -16,14 +16,16 @@
 
 (defn list-selection [windows sessionid e]
   (defn new-window []
-    (swap! windows assoc (selection e) (discussion-form sessionid (selection e))))
+    (let [usratom (atom (selection e))]
+      (swap! windows assoc (-> e selection :user-handle) {:user usratom
+                                                          :window (discussion-form sessionid usratom)})))
   ;; (println "List selection called with " (selection e))
   (if (contains? @windows (selection e))
     (invoke-later
      (println "Window found")
-     (if (visible? (get @windows (selection e)))
+     (if (visible? (:window (get @windows (selection e))))
        (doto
-           (get @windows (selection e))
+           (:window (get @windows (selection e)))
          (.toFront)
          (.repaint))
        (new-window)))
@@ -44,7 +46,7 @@
                                                           :renderer (string-renderer :username)
                                                           :id :users
                                                           :listen
-                                                          [:selection
+                                                          [:mouse-released
                                                            (partial list-selection windows sessionid)]))]))]
     (doto (Thread.
            (fn []
