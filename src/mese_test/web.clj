@@ -1,6 +1,10 @@
+;;Logout broken
+;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
+
 (ns mese-test.web
   (:require [mese-test.auth :refer [user-authenticates!?
                                     session-authenticates?
+                                    logout!
                                     username->userhandle
                                     people-logged-in
                                     ip-to-sender-handle
@@ -45,6 +49,23 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"})))
+  (GET "/logout/:session-id/"
+       {{session-id :session-id} :params ip :remote-addr}
+       (try
+         (if (session-authenticates? ip session-id)
+           {:status 200
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body "{:success " (logout! session-id ip) "}"}
+           {:status 403
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body "{:success false}"})         
+         (catch Exception ex
+           (println ex)
+           {:status 500
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body "{:success false } ; Infernal server error - admin is notified"})))
+         
+       
   (GET "/list-friends/:session-id"
        {{session-id :session-id} :params
         ip :remote-addr}

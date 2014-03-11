@@ -89,6 +89,35 @@
         (println "Returning false")
         false)))
 
+(defn -logout! [sessionid ip users]
+  (try
+    (println "Logging out.... ")
+    ;; (pprint users)
+    ;; (println "sessid: " (class sessionid) "; ip: " (class ip))
+    (let [filtered-stuff (->> users
+                              (filter #(and
+                                        (contains? (-> %
+                                                       :sessions
+                                                       deref) ip)
+                                        (= (-> % :sessions deref (get ip) :session-id str) sessionid))))]
+      (if (empty? filtered-stuff)
+        (do
+          (println "(empty filtered-stuff)")
+          false)
+        (do
+          (println "(not (empty? filtered-stuff): " filtered-stuff)
+          (swap! (-> filtered-stuff
+                     first
+                     :sessions)
+                 (fn [old]
+                   (assoc old ip (assoc (get old ip) :last-call 0))))
+          true)))
+    (catch Exception ex
+      (println "EX@-logout: " ex)
+      false)))
+
+(def logout! #(-logout! %1 %2 @Users))
+
 (defn session-timeout? [session-mapentry]
   ;; Session-mapentry = [ip {:last-call :sessid}]
   (try
