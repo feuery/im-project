@@ -70,7 +70,7 @@
        {{session-id :session-id} :params
         ip :remote-addr}
        (try
-         (println "Listing friends for " session-id ", " ip)           
+         ;; (println "Listing friends for " session-id ", " ip)           
          (if (session-authenticates? ip session-id)
            (do
              (let [toret (->> (people-logged-in)
@@ -79,7 +79,7 @@
 ;                              (map str)
                               vec
                               str)]
-               (println "Returning friends: " toret)
+               ;; (println "Returning friends: " toret)
                {:status 200
                 :headers {"Content-Type" "text/plain; charset=utf-8"}
                 :body toret}))
