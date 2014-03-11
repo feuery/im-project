@@ -1,6 +1,7 @@
 (ns mese-client.ui.discussion
   (:require [seesaw.core :refer :all]
             [seesaw.bind :as b]
+            [seesaw.make-widget :refer [MakeWidget]]
             [clojure.string :as s]
             [seesaw.border :as border]
             [mese-test.util :refer [seq-in-seq? in?]]
@@ -34,6 +35,17 @@
 
 (def user-keys [:user-handle :username :img-url :state :personal-message])
 
+
+(def possible-states [:online :busy :away :returning :lunch :fake-offline :real-offline])
+
+(defn state-to-color [state]
+  {:pre [(in? possible-states state)]}
+  (cond
+   (in? [:online] state) "#1AFF00"
+   (in? [:busy] state) "#FF0000"
+   (in? [:away :returning :lunch]) "FFA600"
+   :t "#999999"))
+
 (defn discussion-form [session-id friend]
   {:pre [(seq-in-seq? user-keys (keys friend))]}
   (try
@@ -46,16 +58,20 @@
                 :content
                 (vertical-panel
                   :items
-                  [(str (:username friend) "    -    (" (-> friend :state str (s/replace #":" "")) ")")
-                   (:personal-message friend)
+                  [(label :text (str (:username friend) "    -    (" (-> friend :state str (s/replace #":" "")) ")") :font "ARIAL-BOLD-18")
+                   (label :text (:personal-message friend) :font "ARIAL-15")
                    (horizontal-panel
                     :items
                     [(border-panel :north (-> friend
                                               :img-url
-                                              (URL.))
+                                              (URL.)
+                                              make-widget
+                                              (config! :background (state-to-color (:state friend))
+                                                       :size [100 :by 120]))
                                    :south "Oma kuvasi, tai jotain")
                      (top-bottom-split (text :multi-line? true :editable? false
-                                             :wrap-lines? true :id :discussion)
+                                             :wrap-lines? true :id :discussion
+                                             :minimum-size [800 :by 600])
                                        (border-panel :center (text :multi-line? true :wrap-lines? true)
                                                      :east (button :text "SEND" :listen [:action-performed
                                                                                          (fn [_]

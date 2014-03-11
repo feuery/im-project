@@ -17,7 +17,7 @@
 (defn list-selection [windows sessionid e]
   (defn new-window []
     (swap! windows assoc (selection e) (discussion-form sessionid (selection e))))
-  (println "List selection called with " (selection e))
+  ;; (println "List selection called with " (selection e))
   (if (contains? @windows (selection e))
     (invoke-later
      (println "Window found")
@@ -38,12 +38,14 @@
                      :height 600
                      :on-close :dispose
                      :visible? true
-                     :content  (vertical-panel :items [(scrollable (listbox
-                                                                     :model (first @userseq)
-                                                                     :renderer (string-renderer :username)
-                                                                     :id :users
-                                                                     :listen
-                                                                     [:selection (partial list-selection windows sessionid)]))]))]
+                     :content
+                     (vertical-panel :items [(scrollable (listbox
+                                                          :model (first @userseq)
+                                                          :renderer (string-renderer :username)
+                                                          :id :users
+                                                          :listen
+                                                          [:selection
+                                                           (partial list-selection windows sessionid)]))]))]
     (doto (Thread.
            (fn []
              (reset! userseq (people-logged-in sessionid))
