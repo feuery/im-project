@@ -55,7 +55,7 @@
          (if (session-authenticates? ip session-id)
            {:status 200
             :headers {"Content-Type" "text/plain; charset=utf-8"}
-            :body "{:success " (logout! session-id ip) "}"}
+            :body (str "{:success " (str (logout! session-id ip)) "}")}
            {:status 403
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false}"})         
