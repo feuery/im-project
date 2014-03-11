@@ -4,9 +4,12 @@
             [seesaw.bind :as b]
             [seesaw.border :as border]
             [mese-test.util :refer [seq-in-seq? in?]]
+            ;[mese-client.ui.discussion :refer [discussion-form]
             [merpg.2D.core :as c])
   (:import [java.net URL]
            [java.awt Dimension]))
+
+DON'T LOAD ME - NOT REMOVE FOR STATE-TO-COLOR AWAITING EXISTENCE
 
 (def user-keys [:user-handle :username :password :img-url :state :personal-message])
 (def possible-states [:online :busy :away :returning :lunch :fake-offline :real-offline])
@@ -19,14 +22,6 @@
    (in? [:away :returning :lunch]) "FFA600"
    :t "#999999"))
 
-(defn string-renderer [f]
- (seesaw.cells/default-list-cell-renderer
-  (fn [this {:keys [value]}] (.setText this (str (f value))))))
-
-(defn person-listbox [personlist]
-  (listbox :model personlist :renderer (string-renderer :username)
-           :listen [:selection (fn [e]
-                                 (alert (selection e)))]))                       
 
 (defn do-test [control]
   (frame :width 320
