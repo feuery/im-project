@@ -4,7 +4,7 @@
             [org.httpkit.client :as http]))
 (defn login
   "Returns false on failure, session-id on success."
-  [username password]
+  [username password current-user-atom]
   (let [url (str server-url "login/" username "/" password)]
     (println "url: " url)
     (when-let [{body :body :as result} @(http/get url)]
@@ -14,7 +14,9 @@
         false
         (if-let [body-map (read-string body)]
           (if (:success body-map)
-            (:session-id body-map)
+            (do
+              (reset! current-user-atom (:user body-map))
+              (:session-id body-map))
             false))))))
     
 

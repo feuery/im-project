@@ -6,7 +6,8 @@
             [seesaw.border :as border]
             [mese-test.util :refer [seq-in-seq? in?]]
             [merpg.2D.core :as c]
-            [mese-client.communications :refer :all])
+            [mese-client.communications :refer :all]
+            [mese-client.friends :refer [state-to-color]])
     (:import [java.net URL]
            [java.awt Dimension]))
 
@@ -35,16 +36,6 @@
 
 (def user-keys [:user-handle :username :img-url :state :personal-message])
 
-
-(def possible-states [:online :busy :away :returning :lunch :fake-offline :real-offline])
-
-(defn state-to-color [state]
-  {:pre [(in? possible-states state)]}
-  (cond
-   (in? [:online] state) "#1AFF00"
-   (in? [:busy] state) "#FF0000"
-   (in? [:away :returning :lunch] state) "#FFA600"
-   :t "#999999"))
 
 (defn discussion-form [session-id friend]
   {:pre [(seq-in-seq? user-keys (keys @friend))]}

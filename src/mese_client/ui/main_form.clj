@@ -2,8 +2,11 @@
   (:require [seesaw.core :refer :all]
             [seesaw.bind :as b]
             [clojure.pprint :refer [pprint]]
+            [clojure.string :as s]
             [mese-client.ui.discussion :refer [discussion-form]]
-            [mese-client.friends :refer [get-current-users]]))
+            [mese-client.friends :refer [get-current-users
+                                         state-to-color]])
+  (:import [java.net URL]))
 
 (def user-poll-timespan 10) ;Seconds
 
@@ -33,7 +36,7 @@
       (println "Window not found")
       (new-window))))
                                                                                      
-(defn show-mainform [sessionid]
+(defn show-mainform [sessionid current-user-atom]
   (let [userseq (atom (people-logged-in sessionid))
         windows (atom {})
         form (frame :width 800
@@ -41,13 +44,52 @@
                      :on-close :dispose
                      :visible? true
                      :content
-                     (vertical-panel :items [(scrollable (listbox
-                                                          :model (first @userseq)
+                     (vertical-panel :items [(horizontal-panel
+                                              :items [(-> @current-user-atom
+                                                          :img-url
+                                                          URL.
+                                                          make-widget
+                                                          (config! :id :imagebox
+                                                                   :background
+                                                                     (state-to-color (:state @current-user-atom))
+                                                                   :size [100 :by 120]))
+                                                      (vertical-panel
+                                                       :items
+                                                       [(label :text (:username @current-user-atom)
+                                                               :font "ARIAL-BOLD-18"
+                                                               :id :username)
+                                                        (label :text (:personal-message @current-user-atom)
+                                                               :font "ARIAL-15"
+                                                               :id :personal-message)])])
+                                                          
+                                             (scrollable (listbox
+                                                          :model (try
+                                                                   (first @userseq)
+                                                                   (catch IllegalArgumentException ex
+                                                                     (println "IAE napattu")
+                                                                     (println "userseq: " @userseq)))
                                                           :renderer (string-renderer :username)
                                                           :id :users
                                                           :listen
                                                           [:mouse-released
                                                            (partial list-selection windows sessionid)]))]))]
+    (b/bind current-user-atom (b/transform
+                               #(str (:username %) "    -    (" (s/replace (:state %) #":" "") ")"))
+            (b/property (select form [:#username]) :text))
+    
+    (b/bind current-user-atom (b/transform :personal-message)
+            (b/property (select form [:#personal-message]) :text))
+
+    (b/bind current-user-atom
+              (b/transform #(try
+                              ((comp state-to-color :state) %)
+                              (catch Exception ex ;;Catch the typos in the state...
+                                (println ex))))
+              (b/property (select form [:#imagebox]) :background))
+    (b/bind current-user-atom
+            (b/transform #(-> % :img-url URL.))
+            (b/property (select form [:#imagebox]) :icon))
+    
     (doto (Thread.
            (fn []
              (try

@@ -7,6 +7,8 @@
 
 (native!)
 
+(def current-user (atom nil))
+
 ;(defn -main [& argh]
 (let [login-map (get-credentsials)]
   (comment     {:username username
@@ -18,10 +20,10 @@
 
   (when (= @(:window-state login-map) :ready)
     (let [{username :username password :password} (map-to-values deref login-map)
-          session-id (login username password)]
+          session-id (login username password current-user)]
       (if session-id
         (do
           (println "sessid: " session-id)
           (println "Showing mainform")
-          (show-mainform session-id))
+          (show-mainform session-id current-user))
         (str "sessid-fail: " session-id)))))
