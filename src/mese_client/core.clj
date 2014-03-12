@@ -2,6 +2,7 @@
   (:require [seesaw.core :refer :all]
             [mese-client.ui.login-form :refer [get-credentsials]]
             [mese-client.ui.main-form :refer [show-mainform]]
+            [mese-client.communications :refer [login]]
             [mese-test.util :refer [map-to-values]]))
 
 (native!)

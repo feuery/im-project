@@ -129,6 +129,21 @@
       (println ex)
       (println "Session-mapentry: " session-mapentry))))
 
+(defn rename-user [users user-handle new-username]
+  (let [staty-user (->> users
+                        (filter #(= (-> %
+                                        :user
+                                        :user-handle) user-handle))
+                        first)]
+    (when staty-user
+      (let [index (.indexOf users staty-user)]
+        (assoc users index 
+               (assoc staty-user :user
+                      (assoc (:user staty-user) :username new-username)))))))
+
+(defn rename-user! [user-handle new-username]
+  (swap! Users rename-user user-handle new-username))
+
 (defn -user-logged-in? [username users]
   (try
 ;    (println "Username " username)

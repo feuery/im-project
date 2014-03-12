@@ -43,7 +43,7 @@
   (cond
    (in? [:online] state) "#1AFF00"
    (in? [:busy] state) "#FF0000"
-   (in? [:away :returning :lunch]) "FFA600"
+   (in? [:away :returning :lunch] state) "#FFA600"
    :t "#999999"))
 
 (defn discussion-form [session-id friend]
@@ -58,8 +58,12 @@
                 :content
                 (vertical-panel
                   :items
-                  [(label :text (str (:username @friend) "    -    (" (-> @friend :state str (s/replace #":" "")) ")") :font "ARIAL-BOLD-18")
-                   (label :text (:personal-message @friend) :font "ARIAL-15")
+                  [(label :text (str (:username @friend) "    -    (" (-> @friend :state str (s/replace #":" "")) ")")
+                          :font "ARIAL-BOLD-18"
+                          :id :friend-name)
+                   (label :text (:personal-message @friend)
+                          :font "ARIAL-15"
+                          :id :friend-persmes)
                    (horizontal-panel
                     :items
                     [(border-panel :north (-> @friend
@@ -67,7 +71,8 @@
                                               (URL.)
                                               make-widget
                                               (config! :background (state-to-color (:state @friend))
-                                                       :size [100 :by 120]))
+                                                       :size [100 :by 120]
+                                                       :id :friend-image))
                                    :south "Oma kuvasi, tai jotain")
                      (top-bottom-split (text :multi-line? true :editable? false
                                              :wrap-lines? true :id :discussion
@@ -77,7 +82,27 @@
                                                                                          (fn [_]
                                                                                            (alert "Not implemented"))]))
                                        :divider-location 2/3)])]))]
+      (b/bind friend
+              (b/transform #(str (:username %) "    -    (" (s/replace (:state %) #":" "") ")"))
+              (b/property (select form [:#friend-name]) :text))
+      (b/bind friend
+              (b/transform :personal-message)
+              (b/property (select form [:#friend-persmes]) :text))
+      (b/bind friend
+              (b/transform #(try
+                              ((comp state-to-color :state) %)
+                              (catch Exception ex ;;Catch the typos in the state...
+                                (println ex))))
+              (b/property (select form [:#friend-image]) :background))
       form)
     (catch Exception ex
       (println ex)
       (throw ex))))
+
+(comment #(try
+                              (if (instance? clojure.lang.Atom %)
+                                (-> % deref :username)
+                                (:username %))
+                              (catch Exception ex
+                                (println "Joku tekee tyhmyyksiä transformissa discussionissa")
+                                (throw ex))))
