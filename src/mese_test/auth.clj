@@ -25,9 +25,21 @@
 
 (def user-db [feuer new-recipient])
 
-(defn find-user [user-db user-handle]
+(defn find-user
+  "Doesn't work on the Users - atom"
+  [user-db user-handle]
   (or
    (first (filter #(= (:user-handle %) user-handle) user-db))
+   false))
+
+(defn find-user-real
+  "Works on the Users - atom"
+  [user-handle]
+  (or
+   (-> (filter #(= (:user-handle (:user %)) user-handle) @Users)
+       first
+       :user
+       (dissoc :password))
    false))
 
 (defn user-authenticates? [user-db username naked-password]

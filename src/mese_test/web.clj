@@ -1,12 +1,11 @@
-;; Käyttäjäpäivitys on rikki clientissä...
-
 ;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
-/
+
 (ns mese-test.web
   (:require [mese-test.auth :refer [user-authenticates!?
                                     session-authenticates?
                                     logout!
                                     username->userhandle
+                                    find-user-real
                                     people-logged-in
                                     ip-to-sender-handle
                                     user-logged-in?]]
@@ -35,11 +34,11 @@
          (println "ip " ip)
          (let [sessionid (promise)]
            (if (user-authenticates!? username password ip sessionid)
-             (do
+             (let [user (find-user-real username)]
                (println username " authenticated from ip " ip)
                {:status 200
                 :headers {"Content-Type" "text/plain; charset=utf-8"}
-                :body (str "{:success true :session-id " @sessionid "}")})
+                :body (str "{:success true :session-id " @sessionid " :user " user "}")})
              (do
                (println "Tough luck")
                {:status 403
