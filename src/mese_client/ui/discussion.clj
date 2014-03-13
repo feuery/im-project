@@ -37,7 +37,16 @@
 (def user-keys [:user-handle :username :img-url :state :personal-message])
 
 
-(defn discussion-form [session-id friend]
+(defn make-imgview [usratom id]
+  (-> @usratom
+      :img-url
+      (URL.)
+      make-widget
+      (config! :background (state-to-color (:state @usratom))
+               :size [100 :by 120]
+               :id id)))
+
+(defn discussion-form [current-user-atom session-id friend]
   {:pre [(seq-in-seq? user-keys (keys @friend))]}
   (try
     (println "Doing discussion")
@@ -64,7 +73,7 @@
                                               (config! :background (state-to-color (:state @friend))
                                                        :size [100 :by 120]
                                                        :id :friend-image))
-                                   :south "Oma kuvasi, tai jotain")
+                                   :south (make-imgview current-user-atom :own-image))
                      (top-bottom-split (text :multi-line? true :editable? false
                                              :wrap-lines? true :id :discussion
                                              :minimum-size [800 :by 600])

@@ -8,7 +8,7 @@
   (let [{body :body :as result} @(http/get (str server-url "list-friends/" session-id))]
     ;; (println "Results: ")
     ;; (pprint result)
-    (println "@get-current-users: body: " body)
+    ;(println "@get-current-users: body: " body)
     (if-let [result (read-string body)]
       (if (map? result)
         (do

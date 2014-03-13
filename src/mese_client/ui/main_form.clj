@@ -18,24 +18,39 @@
  (seesaw.cells/default-list-cell-renderer
   (fn [this {:keys [value]}] (.setText this (str (f value))))))
 
-(defn list-selection [windows sessionid e]
-  (defn new-window []
-    (let [usratom (atom (selection e))]
-      (swap! windows assoc (-> e selection :user-handle) {:user usratom
-                                                          :window (discussion-form sessionid usratom)})))
-  ;; (println "List selection called with " (selection e))
-  (if (contains? @windows (selection e))
-    (invoke-later
-     (println "Window found")
-     (if (visible? (:window (get @windows (selection e))))
-       (doto
-           (:window (get @windows (selection e)))
-         (.toFront)
-         (.repaint))
-       (new-window)))
-    (do
-      (println "Window not found")
-      (new-window))))
+(def windows-clone (atom nil))
+(def latest-selection (atom nil))
+
+(defn list-selection [current-user windows sessionid e]
+  (try
+    (defn new-window []
+      (try
+        (let [usratom (atom (selection e))
+              swapping (swap! windows assoc (-> e selection :user-handle) {:user usratom
+                                                              :window (discussion-form current-user sessionid usratom)})]
+          (reset! windows-clone swapping))
+        (catch Exception ex
+          (println "ex@listselection->new-window")
+          (println ex))))
+    
+    ;; (println "List selection called with " (selection e))
+                                        ;    (reset! latest-selection (selection e))
+    (let [user-handle (:user-handle (selection e))]
+      (if (contains? @windows user-handle)
+        (invoke-later
+         (println "Window found")
+         (if (visible? (:window (get @windows user-handle)))
+           (doto
+               (:window (get @windows user-handle))
+             (.toFront)
+             (.repaint))
+           (new-window)))
+        (do
+          (println "Window found not")
+          (new-window))))
+    (catch Exception ex
+      (println "ex@list-selection")
+      (println ex))))
 
 
 (defn edit-user [user-atom]
@@ -115,7 +130,7 @@
                                                           :id :users
                                                           :listen
                                                           [:mouse-released
-                                                           (partial list-selection windows sessionid)]))))]
+                                                           (partial list-selection current-user-atom windows sessionid)]))))]
 
     (b/bind current-user-atom (b/transform :state)
             (select form [:#state-combobox]))
@@ -158,7 +173,7 @@
                  (Thread/sleep (* user-poll-timespan 1000))
                  (if (visible? form)
                    (do
-                     (println "Recurring")
+                     ;(println "Recurring")
                      (recur))
                    (println "Failing - not visible? form")))
                (catch Exception ex
@@ -180,9 +195,9 @@
                                                   (filter #(= (:user-handle (deref %)) (:user-handle new-user)))
                                                   first)]
                                  (reset! user new-user)
-                                 (do
-                                   (println "new-user: " new-user)
-                                   (println "User " (:user-handle new-user) " not found from " person-atoms "\nWindows: ")
+                                 (do nil
+                                   ;(println "new-user: " new-user)
+                                   ;(println "User " (:user-handle new-user) " not found from " person-atoms "\nWindows: ")
                                         ;(pprint @windows)
                                    ))
                                (catch Exception ex
