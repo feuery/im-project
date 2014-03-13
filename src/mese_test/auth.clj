@@ -42,6 +42,20 @@
        (dissoc :password))
    false))
 
+(defn commit-user! [user-handle user]
+  (let [old (->> @Users
+                 (filter #(= (:user-handle (:user %)) user-handle))
+                 first)
+        index (.indexOf @Users old)]
+    (swap! Users assoc index user)))
+
+(defn session-belongs-to-user? [user session-id]
+  (in? (->> user
+            :sessions
+            deref
+            (map second)
+            (map :session-id)) session-id))
+
 (defn user-authenticates? [user-db username naked-password]
   (let [password (sha-512 naked-password)
         user (find-user user-db username)]

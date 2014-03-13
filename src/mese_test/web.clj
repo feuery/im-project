@@ -4,6 +4,8 @@
   (:require [mese-test.auth :refer [user-authenticates!?
                                     session-authenticates?
                                     logout!
+                                    commit-user!
+                                    session-belongs-to-user?
                                     username->userhandle
                                     find-user-real
                                     people-logged-in
@@ -12,11 +14,18 @@
             [mese-test.user :refer [create-message
                                     dump-outbox!
                                     push-outbox!]]
+            [mese-test.util :refer [in?]]
             [clojure.string :as s]
             [ring.middleware.params :refer [wrap-params]]
             [ring.adapter.jetty :as jetty]
             [compojure.core :refer :all]
             [compojure.route :as route]))
+
+(def user-keys [:user-handle 
+                :username
+                :img-url 
+                :state 
+                :personal-message])
 
 (defroutes app
   (POST "/hello-world"
@@ -64,8 +73,33 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"})))
-         
-       
+  (POST "/update-myself/:session-id/:user-handle/:property/:new-value/"
+        {{session-id :session-id
+          user-handle :user-handle
+          property :property
+          new-value :new-value} :params ip :remote-addr}
+        (try
+          (if (session-authenticates? ip session-id)
+            (let [property (symbol property)]
+              (if (in? user-keys property)
+                (let [user (find-user-real user-handle)]
+                  (when (session-belongs-to-user? user session-id)
+                    (commit-user! (assoc user property new-value))
+                    {:status 200
+                     :headers {"Content-Type" "text/plain; charset=utf-8"}
+                     :body  "{:success true}"}))
+                {:status 403
+                 :headers {"Content-Type" "text/plain; charset=utf-8"}
+                 :body "{:success false}"}))
+            {:status 403
+             :headers {"Content-Type" "text/plain; charset=utf-8"}
+             :body "{:success false}"})
+          
+          (catch Exception ex
+           (println ex)
+           {:status 500
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body "{:success false } ; Infernal server error - admin is notified"})))
   (GET "/list-friends/:session-id"
        {{session-id :session-id} :params
         ip :remote-addr}
