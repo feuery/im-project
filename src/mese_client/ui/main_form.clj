@@ -78,7 +78,7 @@
                      :on-close :dispose
                      :visible? true
                      :content
-                     (vertical-panel :items [(horizontal-panel
+                     (top-bottom-split (horizontal-panel
                                               :items [(-> @current-user-atom
                                                           :img-url
                                                           URL.
@@ -115,7 +115,7 @@
                                                           :id :users
                                                           :listen
                                                           [:mouse-released
-                                                           (partial list-selection windows sessionid)]))]))]
+                                                           (partial list-selection windows sessionid)]))))]
     
     (b/bind current-user-atom (b/transform :username)
             (b/property (select form [:#username]) :text))
