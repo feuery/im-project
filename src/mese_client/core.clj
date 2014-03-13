@@ -20,6 +20,7 @@
 
   (when (= @(:window-state login-map) :ready)
     (let [{username :username password :password} (map-to-values deref login-map)
+          _ (println "salis: " password)
           session-id (login username password current-user)]
       (if session-id
         (do

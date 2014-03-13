@@ -35,6 +35,31 @@
     (do
       (println "Window not found")
       (new-window))))
+
+
+(defn edit-user [user-atom]
+  (try
+    (frame :size [320 :by 240]
+           :title "Propertyeditor"
+           :visible? true
+           :content (grid-panel :columns 2 :items
+                                (-> (map (fn [[key val]]
+                                       [(str key)
+                                        (text :text (str val)
+                                              :listen [:document
+                                                       (fn [e]
+                                                         (println "Swapping " key " to " (text e) " on " user-atom)
+                                                         (swap! user-atom assoc key
+                                                                (cond
+                                                                 (number? val) (Long/parseLong (text e))
+                                                                 (keyword? val) val
+                                                                 :t (text e))))])])
+                                         (dissoc @user-atom :user-handle :state))
+                                    flatten
+                                    vec)))
+    (catch Exception ex
+      (println "Plöp")
+      (println ex))))
                                                                                      
 (defn show-mainform [sessionid current-user-atom]
   (let [userseq (atom (people-logged-in sessionid))
@@ -51,7 +76,7 @@
                                                           make-widget
                                                           (config! :id :imagebox
                                                                    :background
-                                                                     (state-to-color (:state @current-user-atom))
+                                                                   (state-to-color (:state @current-user-atom))
                                                                    :size [100 :by 120]))
                                                       (vertical-panel
                                                        :items
@@ -60,7 +85,9 @@
                                                                :id :username)
                                                         (label :text (:personal-message @current-user-atom)
                                                                :font "ARIAL-15"
-                                                               :id :personal-message)])])
+                                                               :id :personal-message)])]
+                                              :listen [:mouse-released (fn [_]
+                                                                         (edit-user current-user-atom))])
                                                           
                                              (scrollable (listbox
                                                           :model (try
@@ -73,6 +100,7 @@
                                                           :listen
                                                           [:mouse-released
                                                            (partial list-selection windows sessionid)]))]))]
+    
     (b/bind current-user-atom (b/transform
                                #(str (:username %) "    -    (" (s/replace (:state %) #":" "") ")"))
             (b/property (select form [:#username]) :text))
@@ -141,5 +169,3 @@
                                  (.printStackTrace ex)
                                  (throw ex)))))))
     true))
-
-(comment [{:user {:user-handle "feuer", :username "Feuer", :password "68264921dadf2a507baf7805559571ec7c585afe64f6d7127e013d07ce2cc30492426feaeb42fa9b89dff7ee2d39a61a5079135699434893281f39d041c6d43f", :img-url "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220/imagex100x100.jpeg", :state :online, :personal-message "This is a personal message"}, :sessions #<Atom@453a7cca: {"127.0.0.1" {:last-call 1394614537113, :session-id 7179651}}>}])
