@@ -116,6 +116,11 @@
                                                           :listen
                                                           [:mouse-released
                                                            (partial list-selection windows sessionid)]))))]
+
+    (b/bind current-user-atom (b/transform :state)
+            (select form [:#state-combobox]))
+    (b/bind (b/selection (select form [:#state-combobox]))
+            (b/b-swap! current-user-atom #(assoc %1 :state %2)))
     
     (b/bind current-user-atom (b/transform :username)
             (b/property (select form [:#username]) :text))

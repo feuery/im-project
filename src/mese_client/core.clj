@@ -9,6 +9,9 @@
 
 (def current-user (atom nil))
 
+(add-watch current-user :watcher (fn [_ _ _ new]
+                                   (println "New of current-user: " new)))
+
 ;(defn -main [& argh]
 (let [login-map (get-credentsials)]
   (comment     {:username username
