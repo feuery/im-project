@@ -74,14 +74,34 @@
                                                        :size [100 :by 120]
                                                        :id :friend-image))
                                    :south (make-imgview current-user-atom :own-image))
-                     (top-bottom-split (text :multi-line? true :editable? false
-                                             :wrap-lines? true :id :discussion
-                                             :minimum-size [800 :by 600])
-                                       (border-panel :center (text :multi-line? true :wrap-lines? true)
+                     (top-bottom-split (scrollable (text :multi-line? true :editable? false
+                                                         :wrap-lines? true :id :discussion)
+                                                   :minimum-size [200 :by 600])
+                                       (border-panel :center (text :multi-line? true
+                                                                   :wrap-lines? true
+                                                                   :id :msg)
                                                      :east (button :text "SEND" :listen [:action-performed
                                                                                          (fn [_]
                                                                                            (alert "Not implemented"))]))
                                        :divider-location 2/3)])]))]
+      
+      (listen (select form [:#msg])
+              :key-released
+              (fn [e]
+                (println (if (= (.getKeyChar e) \newline) "\\newline" (.getKeyChar e)))
+                (if (and (= (.getKeyChar e) \newline)
+                         (not (.isAltDown e)))
+                  (do
+                    (println "Sending " (text e) " to " (:user-handle @friend))
+                    (send-msg session-id
+                              (:user-handle @friend)
+                              (text e))
+                    (let [disc (select form [:#discussion])]
+                      (text! disc (str (text disc) "\n" (:username @current-user-atom) " says:\n"
+                                       (text e))))
+                    (text! e ""))
+                  (if (= (.getKeyChar e) \newline)
+                    (text! e (str (text e) \newline))))))
       
       (b/bind friend
               (b/transform #(str (:username %) "    -    (" (s/replace (:state %) #":" "") ")"))
