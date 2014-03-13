@@ -82,6 +82,7 @@
                                                                                          (fn [_]
                                                                                            (alert "Not implemented"))]))
                                        :divider-location 2/3)])]))]
+      
       (b/bind friend
               (b/transform #(str (:username %) "    -    (" (s/replace (:state %) #":" "") ")"))
               (b/property (select form [:#friend-name]) :text))
@@ -94,6 +95,18 @@
                               (catch Exception ex ;;Catch the typos in the state...
                                 (println ex))))
               (b/property (select form [:#friend-image]) :background))
+
+      (b/bind current-user-atom
+              (b/transform #(try
+                              ((comp state-to-color :state) %)
+                              (catch Exception ex ;;Catch the typos in the state...
+                                (println ex))))
+              (b/property (select form [:#own-image]) :background))
+      (b/bind current-user-atom
+              (b/transform #(-> % :img-url URL.))
+              (b/property (select form [:#own-image]) :icon))
+      
+      
       form)
     (catch Exception ex
       (println ex)
