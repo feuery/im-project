@@ -5,6 +5,7 @@
             [clojure.string :as s]
             [mese-client.ui.discussion :refer [discussion-form]]
             [mese-client.friends :refer [get-current-users
+                                         possible-states
                                          state-to-color]])
   (:import [java.net URL]))
 
@@ -60,6 +61,14 @@
     (catch Exception ex
       (println "Plöp")
       (println ex))))
+
+(defn state-renderer [state]
+  (str
+   (-> state
+       str
+       (s/replace #":" "")
+       s/capitalize)
+   (if (= state :returning) " Soon" "")))
                                                                                      
 (defn show-mainform [sessionid current-user-atom]
   (let [userseq (atom (people-logged-in sessionid))
@@ -80,12 +89,19 @@
                                                                    :size [100 :by 120]))
                                                       (vertical-panel
                                                        :items
-                                                       [(label :text (:username @current-user-atom)
-                                                               :font "ARIAL-BOLD-18"
-                                                               :id :username)
-                                                        (label :text (:personal-message @current-user-atom)
+                                                       [(horizontal-panel :items
+                                                                          [(label :text (:username @current-user-atom)
+                                                                                  :font "ARIAL-BOLD-18"
+                                                                                  :id :username)
+                                                                           (combobox :model (filter #(not (= % :real-offline)) possible-states)
+                                                                                     :id :state-combobox
+                                                                                     :size [200 :by 25]
+                                                                                     :renderer
+                                                                                     (string-renderer
+                                                                                      state-renderer))])
+                                                        (horizontal-panel :items [(label :text (:personal-message @current-user-atom)
                                                                :font "ARIAL-15"
-                                                               :id :personal-message)])]
+                                                               :id :personal-message)])])]
                                               :listen [:mouse-released (fn [_]
                                                                          (edit-user current-user-atom))])
                                                           
@@ -101,8 +117,7 @@
                                                           [:mouse-released
                                                            (partial list-selection windows sessionid)]))]))]
     
-    (b/bind current-user-atom (b/transform
-                               #(str (:username %) "    -    (" (s/replace (:state %) #":" "") ")"))
+    (b/bind current-user-atom (b/transform :username)
             (b/property (select form [:#username]) :text))
     
     (b/bind current-user-atom (b/transform :personal-message)
