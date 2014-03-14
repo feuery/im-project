@@ -20,8 +20,10 @@
             false))))))
     
 
-(defn send-msg [session-id receiver message]
-  (let [options {:form-params {:message message}}]
+(defn send-msg [session-id ;; receiver
+                message]
+  (let [{message :message receiver :receiver} message
+        options {:form-params {:message message}}]
     @(http/post (str server-url "send-msg/" session-id "/receiver-handle/" receiver) options)))
 
 (defn get-inbox [session-id]

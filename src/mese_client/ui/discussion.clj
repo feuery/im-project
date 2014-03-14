@@ -5,6 +5,7 @@
             [clojure.string :as s]
             [seesaw.border :as border]
             [mese-test.util :refer [seq-in-seq? in?]]
+            [mese-test.user :refer [create-message]]
             [merpg.2D.core :as c]
             [mese-client.communications :refer :all]
             [mese-client.friends :refer [state-to-color]])
@@ -50,7 +51,9 @@
   {:pre [(seq-in-seq? user-keys (keys @friend))]}
   (try
     (println "Doing discussion")
-    (let [form (frame
+    (let [discussion (atom [])
+          current-message (atom "jeeee")
+          form (frame
                 :width 640
                 :height 480 ;;TODO Setup a settings-repository for these, and update it on-resize
                 :visible? true
@@ -84,6 +87,11 @@
                                                                                          (fn [_]
                                                                                            (alert "Not implemented"))]))
                                        :divider-location 2/3)])]))]
+      (add-watch discussion :msg-sender (fn [_ _ _ [{sender :sender
+                                                     message :message :as new-msg} & _]]
+                                          (when (= sender (:user-handle current-user-atom))
+                                            (send-msg session-id new-msg))))
+                                            
       
       (listen (select form [:#msg])
               :key-released
@@ -92,16 +100,41 @@
                 (if (and (= (.getKeyChar e) \newline)
                          (not (.isAltDown e)))
                   (do
-                    (println "Sending " (text e) " to " (:user-handle @friend))
-                    (send-msg session-id
-                              (:user-handle @friend)
-                              (text e))
-                    (let [disc (select form [:#discussion])]
-                      (text! disc (str (text disc) "\n" (:username @current-user-atom) " says:\n"
-                                       (text e))))
+                    ;; (println "Sending " (text e) " to " (:user-handle @friend))
+                    ;; (send-msg session-id
+                    ;;           (:user-handle @friend)
+                    ;;           (text e))
+                    ;; (let [disc (select form [:#discussion])]
+                    ;;   (text! disc (str (text disc) "\n" (:username @current-user-atom) " says:\n"
+                    ;;                    (text e))))
+                    (println "Sending msg.... " (text e))
+                    (swap! discussion #(vec (cons (create-message (:user-handle @current-user-atom)
+                                                             (text e)
+                                                             (:user-handle @friend)) %)))
+                                                             
                     (text! e ""))
                   (if (= (.getKeyChar e) \newline)
                     (text! e (str (text e) \newline))))))
+
+      (b/bind current-message
+               (select form [:#msg]))
+      (b/bind (select form [:#msg])
+              current-message)
+
+      (add-watch current-message :msg-thingie (fn [_ _ _ new]
+                                                (println "Currently the text of the msg: " new)))
+      
+      (b/bind discussion
+              (b/transform (fn [discussion]
+                             (->>
+                              discussion
+                              (sort-by :time)
+                              (map (fn [message]
+                                     (format (str "("  (:time message) ") %s says:\n%s")
+                                             (:sender message)
+                                             (:message message))))
+                              (reduce str))))
+              (b/property (select form [:#discussion]) :text))
       
       (b/bind friend
               (b/transform #(str (:username %) "    -    (" (s/replace (:state %) #":" "") ")"))
@@ -127,7 +160,7 @@
               (b/property (select form [:#own-image]) :icon))
       
       
-      form)
+      {:window form :discussion discussion})
     (catch Exception ex
       (println ex)
       (throw ex))))

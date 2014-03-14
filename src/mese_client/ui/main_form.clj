@@ -27,7 +27,8 @@
       (try
         (let [usratom (atom (selection e))
               swapping (swap! windows assoc (-> e selection :user-handle) {:user usratom
-                                                              :window (discussion-form current-user sessionid usratom)})]
+                                                              :window (:window
+                                                                       (discussion-form current-user sessionid usratom))})]
           (reset! windows-clone swapping))
         (catch Exception ex
           (println "ex@listselection->new-window")
@@ -36,15 +37,29 @@
     ;; (println "List selection called with " (selection e))
                                         ;    (reset! latest-selection (selection e))
     (let [user-handle (:user-handle (selection e))]
-      (if (contains? @windows user-handle)
+      (if (contains? @windows user-handle)               
         (invoke-later
          (println "Window found")
-         (if (visible? (:window (get @windows user-handle)))
-           (doto
-               (:window (get @windows user-handle))
-             (.toFront)
-             (.repaint))
-           (new-window)))
+         (try
+           (if (visible? (:window (get @windows user-handle)))
+             (do
+               (println "Bringing window to front...")
+               (try
+                 (doto
+                     (:window (get @windows user-handle))
+                   (.toFront)
+                   (.repaint))
+                 (catch Exception ex
+                   (println "Brining to front failed. Class (" (class (:window (get @windows user-handle))))
+                   (println ex))))
+             (do
+               (println "Not bringing window to front...")
+               (new-window)))
+           (catch IllegalArgumentException ex
+             (println "IAE!")
+             (println "window: " (:window (get @windows user-handle)))
+             (println "windows: " @windows)
+             (println ex))))
         (do
           (println "Window found not")
           (new-window))))
@@ -86,7 +101,7 @@
    (if (= state :returning) " Soon" "")))
                                                                                      
 (defn show-mainform [sessionid current-user-atom]
-  (let [userseq (atom (people-logged-in sessionid))
+  (let [userseq (atom (people-logged-in sessionid)) 
         windows (atom {})
         form (frame :width 800
                      :height 600
@@ -159,7 +174,9 @@
                (println "Starting")
                (loop []
                  (try
-                   (let [new-users (people-logged-in sessionid)]
+                   (let [new-users (filter
+                                    #(not (= (:user-handle %) (:user-handle @current-user-atom)))
+                                    (people-logged-in sessionid))]
                      (try
                        (reset! userseq new-users)
                        (catch Exception ex
