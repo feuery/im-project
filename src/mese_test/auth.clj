@@ -188,6 +188,11 @@
       (throw ex))))
 
 (def user-logged-in? #(-user-logged-in? % @Users))
+
+(defn logged-out [user]
+  (if-not (user-logged-in? user)
+    (assoc user :state :real-offline)
+    user))
         
 (defn session-authenticates? [ip session-id]
   (try

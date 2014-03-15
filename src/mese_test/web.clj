@@ -8,6 +8,7 @@
                                     logout!
                                     commit-user!
                                     session-belongs-to-user?
+                                    logged-out
                                     username->userhandle
                                     find-user-real
                                     people-logged-in
@@ -110,7 +111,8 @@
          (if (session-authenticates? ip session-id)
            (do
              (let [toret (->> (people-logged-in)
-                              (filter user-logged-in?)
+                              ;(filter user-logged-in?)
+                              (map logged-out)
                               (map #(dissoc % :password))
 ;                              (map str)
                               vec
