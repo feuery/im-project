@@ -85,9 +85,17 @@
           (println "[serverside:] Swapping " user-handle "'s " property " to " new-value)
           (if (session-authenticates? ip session-id)
             (do
-              (println "prop: " property "(" (class property) ")")
-              (println "new-property: " (s/replace property #":" ""))
-              (let [property (keyword (s/replace property #":" ""))]
+              (println "new-value: " (if (= property :state)
+                                       (keyword (s/replace new-value #":" ""))
+                                       new-value))
+              (let [property (keyword (s/replace property #":" ""))
+                    new-value (if (= property :state)
+                                (do
+                                  (println "Property was state")
+                                  (keyword (s/replace new-value #":" "")))
+                                (do
+                                  (println "Property wasn't state")
+                                  new-value))]
                 (if (in? user-keys property)
                   (do
                     (println "We're in!")
@@ -110,10 +118,11 @@
                     (println "usrkeys: " user-keys " | property: " property "(" (class property) ")")
                     {:status 403
                      :headers {"Content-Type" "text/plain; charset=utf-8"}
-                     :body "{:success false :third}"}))))
+                     :body "{:success false ;third
+}"}))))
             {:status 403
              :headers {"Content-Type" "text/plain; charset=utf-8"}
-             :body "{:success false ;first}"})
+             :body "{:success false}"})
           
           (catch Exception ex
            (println ex)
