@@ -34,12 +34,19 @@
 
 (defn find-user-real
   "Works on the Users - atom"
-  [user-handle]
+  [user-handle & {:keys [with-sessions?] :or {with-sessions? false}}]
   (or
-   (-> (filter #(= (:user-handle (:user %)) user-handle) @Users)
-       first
-       :user
-       (dissoc :password))
+   (let [user (->
+               (filter #(= (:user-handle (:user %)) user-handle) @Users)
+               first)]
+     (println "real-user: " user "| with-sessions? " with-sessions?)
+     (if with-sessions?
+       (assoc user :user
+              (dissoc (:user user) :password))
+
+       (-> user
+           :user
+           (dissoc :password))))
    false))
 
 (defn commit-user! [user-handle user]
@@ -50,11 +57,16 @@
     (swap! Users assoc index user)))
 
 (defn session-belongs-to-user? [user session-id]
-  (in? (->> user
-            :sessions
-            deref
-            (map second)
-            (map :session-id)) session-id))
+  {:pre [(in? (keys user) :sessions)]}
+  (println "in session-belongs-to-user?: " user)
+  (let [session-ids (->> user
+                         :sessions
+                         deref
+                         (map second)
+                         (map :session-id)
+                         (map str))]
+    (println "(in? " (map class session-ids) " " (class session-id) ")")
+    (in? session-ids session-id)))
 
 (defn user-authenticates? [user-db username naked-password]
   (let [password (sha-512 naked-password)

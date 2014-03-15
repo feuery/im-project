@@ -1,4 +1,4 @@
-;; Discussion-problem: main_form.clj line 182
+;; Session belongs to us has some nil-problem...
 
 ;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
 
@@ -76,27 +76,44 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"})))
-  (POST "/update-myself/:session-id/:user-handle/:property/:new-value/"
+  (POST "/update-myself/:session-id/:user-handle/"
         {{session-id :session-id
           user-handle :user-handle
-          property :property
-          new-value :new-value} :params ip :remote-addr}
+          property "property"
+          new-value "new-value"} :params ip :remote-addr}
         (try
+          (println "[serverside:] Swapping " user-handle "'s " property " to " new-value)
           (if (session-authenticates? ip session-id)
-            (let [property (symbol property)]
-              (if (in? user-keys property)
-                (let [user (find-user-real user-handle)]
-                  (when (session-belongs-to-user? user session-id)
-                    (commit-user! (assoc user property new-value))
-                    {:status 200
+            (do
+              (println "prop: " property "(" (class property) ")")
+              (println "new-property: " (s/replace property #":" ""))
+              (let [property (keyword (s/replace property #":" ""))]
+                (if (in? user-keys property)
+                  (do
+                    (println "We're in!")
+                    (let [user (find-user-real user-handle :with-sessions? true)]
+                      (println "usr: " user)
+                      
+                      (if (session-belongs-to-user? user session-id)
+                        (do
+                          (println "Session belongs to us!")
+                          (let [new-user (assoc user :user
+                                                (assoc (:user user) property new-value))]
+                            (println "Committing user " new-user)
+
+                            (commit-user! user-handle new-user)
+                            {:status 200
+                             :headers {"Content-Type" "text/plain; charset=utf-8"}
+                             :body  "{:success true}"}))
+                        (println "session is broken!"))))
+                  (do
+                    (println "usrkeys: " user-keys " | property: " property "(" (class property) ")")
+                    {:status 403
                      :headers {"Content-Type" "text/plain; charset=utf-8"}
-                     :body  "{:success true}"}))
-                {:status 403
-                 :headers {"Content-Type" "text/plain; charset=utf-8"}
-                 :body "{:success false}"}))
+                     :body "{:success false :third}"}))))
             {:status 403
              :headers {"Content-Type" "text/plain; charset=utf-8"}
-             :body "{:success false}"})
+             :body "{:success false ;first}"})
           
           (catch Exception ex
            (println ex)

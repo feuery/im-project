@@ -16,6 +16,17 @@
           false)
         result))))
 
+(defn update-myself [sessid userhandle property value]
+  (let [url (str server-url "update-myself/" sessid "/" userhandle "/")
+        options {:form-params {:property property :new-value value}}]
+    (println "Url: " url " | userhandle: " userhandle)
+    (when-let [{body :body :as result} @(http/post url options)]
+      (println "body: " body)
+      (if-let [result (read-string body)]
+        (if (map? result)
+          (:success result)
+          false)))))
+
 (def possible-states [:online :busy :away :returning :lunch :fake-offline :real-offline])
 
 (defn state-to-color [state]
