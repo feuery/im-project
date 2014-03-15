@@ -6,7 +6,8 @@
             [mese-client.ui.discussion :refer [discussion-form]]
             [mese-client.friends :refer [get-current-users
                                          possible-states
-                                         state-to-color]])
+                                         state-to-color]]
+            [mese-client.communications :refer [get-inbox]])
   (:import [java.net URL]))
 
 (def user-poll-timespan 10) ;Seconds
@@ -26,9 +27,11 @@
     (defn new-window []
       (try
         (let [usratom (atom (selection e))
-              swapping (swap! windows assoc (-> e selection :user-handle) {:user usratom
-                                                              :window (:window
-                                                                       (discussion-form current-user sessionid usratom))})]
+              discussion-form-result (discussion-form current-user sessionid usratom)
+              swapping (swap! windows assoc (-> e selection :user-handle)
+                              {:user usratom
+                               :window (:window discussion-form-result)
+                               :discussion (:discussion discussion-form-result)})]
           (reset! windows-clone swapping))
         (catch Exception ex
           (println "ex@listselection->new-window")
@@ -103,6 +106,7 @@
 (defn show-mainform [sessionid current-user-atom]
   (let [userseq (atom (people-logged-in sessionid)) 
         windows (atom {})
+        discussions (atom {})  ;;keys are user-handles, vals are returned by the (discussion-form) - fn.
         form (frame :width 800
                      :height 600
                      :on-close :dispose
@@ -168,7 +172,46 @@
             (b/transform #(-> % :img-url URL.))
             (b/property (select form [:#imagebox]) :icon))
     
-    (doto (Thread.
+    (doto (Thread. ;;Inbox-receiver-thread
+           (fn []
+             (try
+               (println "Inbox receiving began")
+               (loop [inbox (get-inbox sessionid)]
+                 (println "inbox (" inbox ") received")
+                 (doseq [{sender :sender :as msg} inbox]
+                   (println "sender " sender)
+                   (loop [{sender :sender :as msg} msg
+                          counter 1]
+                     (if-let [{discussion :discussion} (get @windows sender)] ;;This discussion key doesnt exist!
+                       (do
+                         (println "swapping to discussion " discussion)
+                         (swap! discussion #(try
+                                              (cons msg %)
+                                              (catch NullPointerException ex
+                                                (println "Null!")
+                                                (println "msg " msg " % " %)
+                                                (throw ex)))))
+                       (let [usratom (->> @userseq
+                                          (filter #(= (:user-handle %) sender))
+                                          first
+                                          atom)]
+                         (println "Creating the discussion...")
+                         (if (= counter 2)
+                           (throw (Exception. "Infinite loop in the inbox-receiver-thread!")))
+                         (swap! windows assoc sender {:user usratom
+                                                      :window (:window (discussion-form current-user-atom sessionid usratom))})
+                         (recur msg 2)))))
+                 
+                 (Thread/sleep (* user-poll-timespan 1000))
+                 (println "recurring inboxthread")
+                 (recur (get-inbox sessionid)))                 
+               (catch Exception ex
+                 (println "Inbox-thread broken")
+                 (println ex)
+                 (throw ex)))))
+      .start)
+    
+    (doto (Thread. ;;User update-thread...
            (fn []
              (try
                (println "Starting")

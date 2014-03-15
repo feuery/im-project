@@ -89,7 +89,9 @@
                                        :divider-location 2/3)])]))]
       (add-watch discussion :msg-sender (fn [_ _ _ [{sender :sender
                                                      message :message :as new-msg} & _]]
-                                          (when (= sender (:user-handle current-user-atom))
+;                                          (println sender " = " 
+                                          (when (= sender (:user-handle @current-user-atom))
+                                            (println "Really sending " message " from " sender)
                                             (send-msg session-id new-msg))))
                                             
       

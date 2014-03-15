@@ -7,6 +7,8 @@
 
 (alter-var-root #'*out* (constantly *out*))
 
+(def running-in-server? false) ;;TODO Again, with the settings..
+
 (def possible-states [:online
                       :busy
                       :away
@@ -16,7 +18,7 @@
                       :real-offline])
 
 (defn create-user
-  "This creates the user-molds, that can be users checked against"
+  "This creates the user-molds, that can be users checked against" 
   [user-handle username img-url state pw-hash]
   {:pre [(in? possible-states state)]}
   {:user-handle user-handle 
@@ -37,7 +39,8 @@
                  (pprint new-state))))
 
 (defn create-message [sender-id msg receiver-id]
-  {:pre [(in? (keys @inboxes) receiver-id)]}
+  {:pre [(or (in? (keys @inboxes) receiver-id)
+             (not running-in-server?))]}
   {:sender sender-id :message msg :receiver receiver-id
    :time (-> (time/now) tc/to-timestamp)
    :sent-to-sessions []})
