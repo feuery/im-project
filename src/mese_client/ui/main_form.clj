@@ -182,29 +182,40 @@
                    (println "sender " sender)
                    (loop [{sender :sender :as msg} msg
                           counter 1]
-                     (if-let [{discussion :discussion} (get @windows sender)] ;;This discussion key doesnt exist!
-                       (do
-                         (println "swapping to discussion " discussion)
-                         (swap! discussion #(try
-                                              (cons msg %)
-                                              (catch NullPointerException ex
-                                                (println "Null!")
-                                                (println "msg " msg " % " %)
-                                                (throw ex)))))
-                       (let [usratom (->> @userseq
-                                          (filter #(= (:user-handle %) sender))
-                                          first
-                                          atom)]
-                         (println "Creating the discussion...")
-                         (if (= counter 2)
-                           (throw (Exception. "Infinite loop in the inbox-receiver-thread!")))
-                         (swap! windows assoc sender {:user usratom
-                                                      :window (:window (discussion-form current-user-atom sessionid usratom))})
-                         (recur msg 2)))))
+                     (let [{discussion :discussion
+                            window :window} (get @windows sender)]
+                       (if (and (not (nil? discussion))
+                                 (visible? window))
+                         (do
+                           (println "swapping to discussion " discussion)
+                           (println (if (nil? discussion)
+                                      "discussion is nil"
+                                      "discussion isn't nil"))
+                           (swap! discussion #(try
+                                                (cons msg %)
+                                                (catch NullPointerException ex
+                                                  (println "Null!")
+                                                  (println "msg " msg " % " %)
+                                                  (throw ex)))))
+                         (let [usratom (->> @userseq
+                                            (filter #(= (:user-handle %) sender))
+                                            first
+                                            atom)
+                               discussion-result (discussion-form current-user-atom sessionid usratom)]
+                           (println "Creating the discussion...")
+                           (if (= counter 2)
+                             (throw (Exception. "Infinite loop in the inbox-receiver-thread!")))
+                           (swap! windows assoc sender {:user usratom
+                                                        :window (:window discussion-result)
+                                                        :discussion (:discussion discussion-result)})
+                           (recur msg 2))))))
                  
                  (Thread/sleep (* user-poll-timespan 1000))
-                 (println "recurring inboxthread")
-                 (recur (get-inbox sessionid)))                 
+                 (if (visible? form)
+                   (do
+                     (println "recurring inboxthread")
+                     (recur (get-inbox sessionid)))
+                   (println "inboxthread stopping")))
                (catch Exception ex
                  (println "Inbox-thread broken")
                  (println ex)
