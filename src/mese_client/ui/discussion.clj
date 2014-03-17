@@ -88,8 +88,10 @@
                                                        :size [100 :by 120]
                                                        :id :friend-image))
                                    :south (make-imgview current-user-atom :own-image))
-                     (top-bottom-split (scrollable (text :multi-line? true :editable? false
-                                                         :wrap-lines? true :id :discussion)
+                     (top-bottom-split (scrollable (editor-pane ;; :multi-line? true :wrap-lines? true
+                                                    :editable? false
+                                                    :content-type "text/html"
+                                                    :id :discussion)
                                                    :minimum-size [200 :by 600])
                                        (border-panel :center (text :multi-line? true
                                                                    :wrap-lines? true
@@ -138,15 +140,43 @@
                                                 (println "Currently the text of the msg: " new)))
       
       (b/bind discussion
-              (b/transform (fn [discussion]
-                             (->>
-                              discussion
-                              (sort-by :time)
-                              (map (fn [message]
-                                     (format (str "("  (:time message) ") %s says:\n%s")
-                                             (:sender message)
-                                             (:message message))))
-                              (reduce str))))
+              (b/transform (fn [discussion]               
+                             (str "<html>"
+                                  (->>
+                                   discussion
+                                   (sort-by :time)
+                                   (map (fn [message]
+                                          (let [usr (if (= (:sender message)
+                                                           (:user-handle @friend))
+                                                      @friend
+                                                      @current-user-atom)
+                                                {user-name :username
+                                                 {b? :bold?
+                                                  i? :italic?
+                                                  u? :underline?
+                                                  color :color
+                                                  font :font-name :as font-prefs} :font-preferences}  usr]
+                                            
+                                            (format (str "("  (:time message) ") %s says:<br/>
+%s%s%s%s"
+                                                         "%s" ;;Msg...
+                                                         "%s%s%s%s <br/>
+&lt;font size=\"16\" color=\"" color "\" face=\"" font "\"&gt; <br/>") ;;Close-tags <3
+                                                    user-name;(:sender message)
+                                                    ;; Formatting... <3
+                                                    (if b? "<b>" "")
+                                                    (if i? "<i>" "")
+                                                    (if u? "<u>" "")
+                                                    (str "<font size=\"16\" color=\"" color "\" face=\"" font "\">")
+                                                    
+                                                    (:message message)
+
+                                                    ;;Close-tags <3
+                                                    "</font>"
+                                                    (if u? "</u>" "")
+                                                    (if i? "</i>" "")
+                                                    (if b? "</b>" "")))))
+                                   (reduce str)) "</html>")))
               (b/property (select form [:#discussion]) :text))
       
       (b/bind friend
