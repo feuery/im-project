@@ -29,7 +29,8 @@
                 :username
                 :img-url 
                 :state 
-                :personal-message])
+                :personal-message
+                :font-preferences])
 
 (defroutes app
   (POST "/hello-world"

@@ -27,6 +27,21 @@
           (:success result)
           false)))))
 
+(defn update-font [sessid userhandle
+                   & {:keys [bold? italic? underline? color font-name]
+                      :or {bold? false
+                           italic? false
+                           underline? false
+                           color "#000000"
+                           font-name "arial"}}]
+  (update-myself sessid userhandle :font-preferences
+                 (pr-str {:bold? bold?
+                          :italic? italic?
+                          :underline? underline?
+                          :color color
+                          :font-name font-name})))
+                          
+
 (def possible-states [:online :busy :away :returning :lunch :fake-offline :real-offline])
 
 (defn state-to-color [state]
