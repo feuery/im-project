@@ -92,8 +92,8 @@
                                 (do
                                   (println "Property was state")
                                   (keyword (s/replace new-value #":" "")))
-                                (do
-                                  (println "Property wasn't state")
+                                (if (and (= property :img-url) (empty? new-value))
+                                  "http://prong.arkku.net/MERPG_logolmio.png"
                                   new-value))]
                 (if (in? user-keys property)
                   (do

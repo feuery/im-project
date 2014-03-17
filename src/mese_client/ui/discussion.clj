@@ -37,6 +37,12 @@
 
 (def user-keys [:user-handle :username :img-url :state :personal-message])
 
+(defmacro do-try [& forms]
+  `(try
+    ~@forms
+    (catch Exception ex#
+      (println "Ongelma koodissa: " '~forms)
+      (println ex#))))
 
 (defn make-imgview [usratom id]
   (-> @usratom
@@ -46,6 +52,11 @@
       (config! :background (state-to-color (:state @usratom))
                :size [100 :by 120]
                :id id)))
+
+(defn make-url [str]
+  (URL. (if (empty? str)
+          "http://prong.arkku.net/MERPG_logolmio.png"
+          str)))
 
 (defn discussion-form [current-user-atom session-id friend]
   {:pre [(seq-in-seq? user-keys (keys @friend))]}
@@ -71,7 +82,7 @@
                     :items
                     [(border-panel :north (-> @friend
                                               :img-url
-                                              (URL.)
+                                              make-url
                                               make-widget
                                               (config! :background (state-to-color (:state @friend))
                                                        :size [100 :by 120]
@@ -139,30 +150,28 @@
               (b/property (select form [:#discussion]) :text))
       
       (b/bind friend
-              (b/transform #(str (:username %) "    -    (" (s/replace (:state %) #":" "") ")"))
+              (b/transform #(do-try
+                              (str (:username %) "    -    (" (s/replace (:state %) #":" "") ")")))
               (b/property (select form [:#friend-name]) :text))
       (b/bind friend
-              (b/transform :personal-message)
+              (b/transform #(do-try
+                              (:personal-message %)))
               (b/property (select form [:#friend-persmes]) :text))
       (b/bind friend
-              (b/transform #(try
-                              ((comp state-to-color :state) %)
-                              (catch Exception ex ;;Catch the typos in the state...
-                                (println ex))))
+              (b/transform #(do-try
+                             ((comp state-to-color :state) %)))
               (b/property (select form [:#friend-image]) :background))
 
       (b/bind current-user-atom
-              (b/transform #(try
-                              ((comp state-to-color :state) %)
-                              (catch Exception ex ;;Catch the typos in the state...
-                                (println ex))))
+              (b/transform #(do-try
+                              ((comp state-to-color :state) %)))
               (b/property (select form [:#own-image]) :background))
       (b/bind current-user-atom
-              (b/transform #(-> % :img-url URL.))
+              (b/transform #(do-try (-> % :img-url make-url)))
               (b/property (select form [:#own-image]) :icon))
 
       (b/bind friend
-              (b/transform #(-> :img-url URL.))
+              (b/transform #(do-try (-> % :img-url make-url)))
               (b/property (select form [:#friend-image]) :icon))
       
       

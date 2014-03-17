@@ -265,7 +265,12 @@
                                (if-let [user (->> person-atoms
                                                   (filter #(= (:user-handle (deref %)) (:user-handle new-user)))
                                                   first)]
-                                 (reset! user new-user)
+                                 (try
+                                   (reset! user new-user)
+                                   (catch Exception ex
+                                     (println "Resetti kusee rivillä 269 main_form.clj:ssä")
+                                     (println "new-user: " new-user)
+                                     (println ex)))
                                  (do nil
                                    ;(println "new-user: " new-user)
                                    ;(println "User " (:user-handle new-user) " not found from " person-atoms "\nWindows: ")
