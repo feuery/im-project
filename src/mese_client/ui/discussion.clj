@@ -160,6 +160,10 @@
       (b/bind current-user-atom
               (b/transform #(-> % :img-url URL.))
               (b/property (select form [:#own-image]) :icon))
+
+      (b/bind friend
+              (b/transform #(-> :img-url URL.))
+              (b/property (select form [:#friend-image]) :icon))
       
       
       {:window form :discussion discussion})
