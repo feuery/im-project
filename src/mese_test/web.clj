@@ -13,6 +13,8 @@
                                     people-logged-in
                                     ip-to-sender-handle
                                     user-logged-in?]]
+            [clj-time.core :as time]
+            [clj-time.coerce :as tc]
             [mese-test.user :refer [create-message
                                     dump-outbox!
                                     push-outbox!]]
@@ -177,6 +179,12 @@
             {:status 403
              :headers {"Content-Type" "text/plain; charset=utf-8"}
              :body "{:success false }"})))
+  (GET "/timestamp/"
+       []
+       {:status 200
+        :headers {"Content-Type" "text/plain; charset=utf-8"}
+        :body (pr-str (-> (time/now) tc/to-timestamp))})
+        
   (GET "/inbox/:session-id/"
        {{session-id :session-id} :params
         ip :remote-addr}

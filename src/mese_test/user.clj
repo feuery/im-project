@@ -1,8 +1,10 @@
 (ns mese-test.user
   (:require [mese-test.util :refer [in?]]
-            [clj-time.core :as time]
+            
 ;            [mese-test.auth :refer [ip-to-sender-handle]]
             [clojure.pprint :refer :all]
+            [mese-client.communications :refer [server-time]]
+            [clj-time.core :as time]
             [clj-time.coerce :as tc]))
 
 (alter-var-root #'*out* (constantly *out*))
@@ -26,7 +28,12 @@
    :password pw-hash
    :img-url img-url 
    :state state 
-   :personal-message "This is a personal message"})
+   :personal-message "This is a personal message"
+   ;; :font-preferences {:bold false
+   ;;                    :italic false
+   ;;                    :color "#000000"
+   ;;                    :font-name "arial"}
+   })
 
 (def inboxes (ref {}))
 (def outboxes (ref {}))
@@ -44,6 +51,10 @@
   {:sender sender-id :message msg :receiver receiver-id
    :time (-> (time/now) tc/to-timestamp)
    :sent-to-sessions []})
+
+(defn create-message-client [& params]
+  (-> (apply create-message params)
+      (assoc :time (server-time))))
 
 (defn dump-outbox! [ip session-id receiver-name]
   (dosync

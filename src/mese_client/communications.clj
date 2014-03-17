@@ -1,7 +1,10 @@
 (ns mese-client.communications
   (:require [mese-client.settings :refer [server-url]]
             [mese-client.friends :refer [get-current-users]]
-            [org.httpkit.client :as http]))
+            [org.httpkit.client :as http]
+            [clj-time.core :as time]
+            [clj-time.coerce :as tc]))
+
 (defn login
   "Returns false on failure, session-id on success."
   [username password current-user-atom]
@@ -18,6 +21,18 @@
               (reset! current-user-atom (:user body-map))
               (:session-id body-map))
             false))))))
+
+(defn date? [dt]
+  (instance? java.util.Date dt))
+  
+(defn server-time []
+  (if-let [{body :body} @(http/get (str server-url "timestamp/"))]
+    (do
+      (println "server-time body: " body)
+      (if (date? (read-string body))
+        (read-string body)
+        (-> (time/now) tc/to-timestamp)))
+    (-> (time/now) tc/to-timestamp)))
     
 
 (defn send-msg [session-id ;; receiver

@@ -5,7 +5,7 @@
             [clojure.string :as s]
             [seesaw.border :as border]
             [mese-test.util :refer [seq-in-seq? in?]]
-            [mese-test.user :refer [create-message]]
+            [mese-test.user :refer [create-message-client]]
             [merpg.2D.core :as c]
             [mese-client.communications :refer :all]
             [mese-client.friends :refer [state-to-color]])
@@ -121,7 +121,7 @@
                     ;;   (text! disc (str (text disc) "\n" (:username @current-user-atom) " says:\n"
                     ;;                    (text e))))
                     (println "Sending msg.... " (text e))
-                    (swap! discussion #(vec (cons (create-message (:user-handle @current-user-atom)
+                    (swap! discussion #(vec (cons (create-message-client (:user-handle @current-user-atom)
                                                              (text e)
                                                              (:user-handle @friend)) %)))
                                                              
