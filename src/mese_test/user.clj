@@ -29,11 +29,10 @@
    :img-url img-url 
    :state state 
    :personal-message "This is a personal message"
-   ;; :font-preferences {:bold false
-   ;;                    :italic false
-   ;;                    :color "#000000"
-   ;;                    :font-name "arial"}
-   })
+   :font-preferences {:bold false
+                       :italic false
+                       :color "#000000"
+                       :font-name "arial"}})
 
 (def inboxes (ref {}))
 (def outboxes (ref {}))
