@@ -12,4 +12,6 @@
  "11.3.2014" {:hours-spent 7 :done "GUI:ta, clientin p‰ivityst‰, korjasin logoutin"}
  "12.3.2014" {:hours-spent 4 :done "GUI-juttuja"}
  "13.3.2014" {:hours-spent 8 :done "GUI-juttuja"}
- "14.3.2014" {:hours-spent 3 :done "Viestin reititys clientin p‰‰ss‰ aloitettu"}}
+ "14.3.2014" {:hours-spent 3 :done "Viestin reititys clientin p‰‰ss‰ aloitettu"}
+ "15.3.2014" {:hours-spent 6 :done "GUI-juttuja"}
+ "17.3.2014" {:hours-spent 6 :done "Bindaukset kuntoon, keskustelujen muotoilut aloitettu"}}

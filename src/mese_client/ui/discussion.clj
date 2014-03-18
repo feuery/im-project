@@ -35,7 +35,7 @@
             |           |                                           |
             +-----------+-------------------------------------------+)
 
-(def user-keys [:user-handle :username :img-url :state :personal-message])
+(def user-keys [:user-handle :username :img-url :state :personal-message :font-preferences])
 
 (defmacro do-try [& forms]
   `(try
@@ -148,7 +148,10 @@
                                    (map (fn [message]
                                           (let [usr (if (= (:sender message)
                                                            (:user-handle @friend))
-                                                      @friend
+                                                      (if (string? (:font-preferences @friend))
+                                                        (assoc @friend :font-preferences     
+                                                               (read-string (:font-preferences @friend)))
+                                                        @friend)
                                                       @current-user-atom)
                                                 {user-name :username
                                                  {b? :bold?
@@ -161,13 +164,13 @@
 %s%s%s%s"
                                                          "%s" ;;Msg...
                                                          "%s%s%s%s <br/>
-&lt;font size=\"16\" color=\"" color "\" face=\"" font "\"&gt; <br/>") ;;Close-tags <3
+&lt;font size=\"16\" color=\"" color "\" style=\"font-family: '" font "'\"&gt;" "<br/>") 
                                                     user-name;(:sender message)
                                                     ;; Formatting... <3
                                                     (if b? "<b>" "")
                                                     (if i? "<i>" "")
                                                     (if u? "<u>" "")
-                                                    (str "<font size=\"16\" color=\"" color "\" face=\"" font "\">")
+                                                    (str "<font size=\"16\" color=\"" color "\" style=\"font-family: '" font "'\">")
                                                     
                                                     (:message message)
 

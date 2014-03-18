@@ -1,14 +1,17 @@
 (ns mese-client.ui.main-form
   (:require [seesaw.core :refer :all]
             [seesaw.bind :as b]
+            [seesaw.chooser :as c]
             [clojure.pprint :refer [pprint]]
+            [fontselector.core :refer [selector]]
             [clojure.string :as s]
             [mese-client.ui.discussion :refer [discussion-form]]
             [mese-client.friends :refer [get-current-users
                                          possible-states
                                          state-to-color]]
             [mese-client.communications :refer [get-inbox]])
-  (:import [java.net URL]))
+  (:import [java.net URL]
+           [java.awt.font TextAttribute]))
 
 (def user-poll-timespan 10) ;Seconds
 
@@ -76,6 +79,7 @@
     (frame :size [320 :by 240]
            :title "Propertyeditor"
            :visible? true
+           
            :content (grid-panel :columns 2 :items
                                 (-> (map (fn [[key val]]
                                        [(str key)
@@ -102,6 +106,27 @@
        (s/replace #":" "")
        s/capitalize)
    (if (= state :returning) " Soon" "")))
+
+(defn font-settings! [current-user-atom _]
+  (if-let [font (-> (selector) show!)]
+    (let [font-map {:bold? (.isBold font)
+                    :italic? (.isItalic font)
+                    :underline? (= (get (.getAttributes font) TextAttribute/UNDERLINE)
+                                   TextAttribute/UNDERLINE_ON)
+                    :color (-> @current-user-atom :font-preferences :color)
+                    :font-name (.getFamily font)}]
+      (swap! current-user-atom #(assoc % :font-preferences font-map)))))
+
+(defn to-hex-color
+  ([r g b]
+     (format "#%02x%02x%02x" r g b))
+  ([color]
+     (to-hex-color (.getRed color) (.getGreen color) (.getBlue color))))
+
+(defn color-settings! [current-user-atom _]
+  (swap! current-user-atom #(assoc % :font-preferences
+                                   (assoc (:font-preferences %) :color (-> (c/choose-color) to-hex-color)))))
+                                                                                     
                                                                                      
 (defn show-mainform [sessionid current-user-atom]
   (let [userseq (atom (people-logged-in sessionid)) 
@@ -110,6 +135,12 @@
         form (frame :width 800
                      :height 600
                      :on-close :dispose
+                     :menubar (menubar :items [(menu :text "File"
+                                                     :items [(action :handler (partial #'font-settings! current-user-atom)
+                                                             :name "Font settings")
+                                                             (action :handler (partial #'color-settings! current-user-atom)
+                                                                     :name "Font's color")])])
+                     
                      :visible? true
                      :content
                      (top-bottom-split (horizontal-panel
