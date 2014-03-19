@@ -159,19 +159,19 @@
                                                   i? :italic?
                                                   u? :underline?
                                                   color :color
-                                                  font :font-name :as font-prefs} :font-preferences}  usr]
+                                                  font :font-name :as font-prefs} :font-preferences} usr
+                                                size (get-setting :font-size)]
                                             
                                             (format (str "("  (:time message) ") %s says:<br/>
 %s%s%s%s"
                                                          "%s" ;;Msg...
-                                                         "%s%s%s%s <br/>
-&lt;font size=\"16\" color=\"" color "\" style=\"font-family: '" font "'\"&gt;" "<br/>") 
+                                                         "%s%s%s%s <br/>") 
                                                     user-name;(:sender message)
                                                     ;; Formatting... <3
                                                     (if b? "<b>" "")
                                                     (if i? "<i>" "")
                                                     (if u? "<u>" "")
-                                                    (str "<font size=\"16\" color=\"" color "\" style=\"font-family: '" font "'\">")
+                                                    (str "<font color=\"" color "\" style=\"font-family: '" font "'; font-size: " size "pt;\">")
                                                     
                                                     (:message message)
 

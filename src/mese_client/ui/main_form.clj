@@ -115,8 +115,10 @@
                     :underline? (= (get (.getAttributes font) TextAttribute/UNDERLINE)
                                    TextAttribute/UNDERLINE_ON)
                     :color (-> @current-user-atom :font-preferences :color)
-                    :font-name (.getFamily font)}]
-      (swap! current-user-atom #(assoc % :font-preferences font-map)))))
+                    :font-name (.getFamily font)}
+          size (.getSize font)]
+      (swap! current-user-atom #(assoc % :font-preferences font-map))
+      (swap! settings assoc :font-size size))))
 
 (defn to-hex-color
   ([r g b]
