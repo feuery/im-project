@@ -1,3 +1,4 @@
+;;Write settings to the mese-client.settings...
 
 ;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
 

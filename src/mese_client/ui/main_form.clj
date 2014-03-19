@@ -6,6 +6,7 @@
             [fontselector.core :refer [selector]]
             [clojure.string :as s]
             [mese-client.ui.discussion :refer [discussion-form]]
+            [mese-client.settings :refer [settings]]
             [mese-client.friends :refer [get-current-users
                                          possible-states
                                          state-to-color]]
@@ -126,6 +127,9 @@
 (defn color-settings! [current-user-atom _]
   (swap! current-user-atom #(assoc % :font-preferences
                                    (assoc (:font-preferences %) :color (-> (c/choose-color) to-hex-color)))))
+
+(defn settings-form [_]
+  (edit-user settings))
                                                                                      
                                                                                      
 (defn show-mainform [sessionid current-user-atom]
@@ -135,11 +139,13 @@
         form (frame :width 800
                      :height 600
                      :on-close :dispose
-                     :menubar (menubar :items [(menu :text "File"
+                     :menubar (menubar :items [(menu :text "Options"
                                                      :items [(action :handler (partial #'font-settings! current-user-atom)
                                                              :name "Font settings")
                                                              (action :handler (partial #'color-settings! current-user-atom)
-                                                                     :name "Font's color")])])
+                                                                     :name "Font's color")
+                                                             (action :handler settings-form
+                                                                     :name "System settings")])])
                      
                      :visible? true
                      :content

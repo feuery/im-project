@@ -2,10 +2,10 @@
   (:require [org.httpkit.client :as http]
             [clojure.pprint :refer :all]
             [mese-test.util :refer [in?]]                        
-            [mese-client.settings :refer [server-url]]))
+            [mese-client.settings :refer [get-setting]]))
 
 (defn get-current-users [session-id]
-  (let [{body :body :as result} @(http/get (str server-url "list-friends/" session-id))]
+  (let [{body :body :as result} @(http/get (str (get-setting :server-url) "list-friends/" session-id))]
     ;; (println "Results: ")
     ;; (pprint result)
     ;(println "@get-current-users: body: " body)
@@ -17,7 +17,7 @@
         result))))
 
 (defn update-myself [sessid userhandle property value]
-  (let [url (str server-url "update-myself/" sessid "/" userhandle "/")
+  (let [url (str (get-setting :server-url) "update-myself/" sessid "/" userhandle "/")
         options {:form-params {:property property :new-value value}}]
     (println "Url: " url " | userhandle: " userhandle)
     (when-let [{body :body :as result} @(http/post url options)]

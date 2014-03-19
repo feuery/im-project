@@ -10,6 +10,9 @@
 
 (native!)
 
+;;TODO Remove from published versions...
+(javax.swing.UIManager/setLookAndFeel "com.sun.java.swing.plaf.gtk.GTKLookAndFeel")
+
 (def current-user (atom nil))
 
 (defn diff [map1 map2]

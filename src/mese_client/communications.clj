@@ -1,5 +1,5 @@
 (ns mese-client.communications
-  (:require [mese-client.settings :refer [server-url]]
+  (:require [mese-client.settings :refer [get-setting]]
             [mese-client.friends :refer [get-current-users]]
             [org.httpkit.client :as http]
             [clj-time.core :as time]
@@ -8,7 +8,7 @@
 (defn login
   "Returns false on failure, session-id on success."
   [username password current-user-atom]
-  (let [url (str server-url "login/" username "/" password)]
+  (let [url (str (get-setting :server-url) "login/" username "/" password)]
     (println "url: " url)
     (when-let [{body :body :as result} @(http/get url)]
       (println "result: " result)
@@ -26,7 +26,7 @@
   (instance? java.util.Date dt))
   
 (defn server-time []
-  (if-let [{body :body} @(http/get (str server-url "timestamp/"))]
+  (if-let [{body :body} @(http/get (str (get-setting :server-url) "timestamp/"))]
     (do
       (println "server-time body: " body)
       (if (date? (read-string body))
@@ -39,10 +39,10 @@
                 message]
   (let [{message :message receiver :receiver} message
         options {:form-params {:message message}}]
-    @(http/post (str server-url "send-msg/" session-id "/receiver-handle/" receiver) options)))
+    @(http/post (str (get-setting :server-url) "send-msg/" session-id "/receiver-handle/" receiver) options)))
 
 (defn get-inbox [session-id]
-  (let [{body :body} @(http/get (str server-url "inbox/" session-id "/"))]
+  (let [{body :body} @(http/get (str (get-setting :server-url) "inbox/" session-id "/"))]
     (println body)
     (when-let [{success :success :as result} (read-string body)] ;;unreadable DateTime-literals fuck this up
       (if success
