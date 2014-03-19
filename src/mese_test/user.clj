@@ -4,12 +4,11 @@
 ;            [mese-test.auth :refer [ip-to-sender-handle]]
             [clojure.pprint :refer :all]
             [mese-client.communications :refer [server-time]]
+            [mese-client.settings :refer [get-setting]]
             [clj-time.core :as time]
             [clj-time.coerce :as tc]))
 
 (alter-var-root #'*out* (constantly *out*))
-
-(def running-in-server? false) ;;TODO Again, with the settings..
 
 (def possible-states [:online
                       :busy
@@ -47,7 +46,7 @@
 
 (defn create-message [sender-id msg receiver-id]
   {:pre [(or (in? (keys @inboxes) receiver-id)
-             (not running-in-server?))]}
+             (not  (get-setting :running-in-server?)))]}
   {:sender sender-id :message msg :receiver receiver-id
    :time (-> (time/now) tc/to-timestamp)
    :sent-to-sessions []})

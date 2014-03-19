@@ -1,8 +1,6 @@
 (ns mese-client.settings
   (:require [clojure.java.io :as io]))
 
-;;Pierastaan ~/.yool-im - tiedostoon settingsit, ja niiden päivittämiseen ja lukemiseen luodaan tänne joku atomi....
-
 ;(def server-url "http://localhost:5000/")
 
 (defn get-initial-settings []
@@ -15,7 +13,11 @@
                                            :italic? false
                                            :underline? false
                                            :color "#000000"
-                                           :font-name "arial"}}
+                                           :font-name "arial"}
+                        :running-in-server? false
+                        :main-width 640
+                        :main-height 480
+                        :font-size 13}
           settingsfile (io/file (str home "/.yool-im"))
           exists? (.exists settingsfile)]
       (if-not exists?
@@ -35,6 +37,7 @@
 
 (add-watch settings :settings-serializer
            (fn [_ _ _ new-state]
+             (println "Settings changed: " new-state)
              (let [home (System/getProperty "user.home")
                    settingsfile (io/file (str home "/.yool-im"))]
                (.delete settingsfile)

@@ -136,8 +136,8 @@
   (let [userseq (atom (people-logged-in sessionid)) 
         windows (atom {})
         discussions (atom {})  ;;keys are user-handles, vals are returned by the (discussion-form) - fn.
-        form (frame :width 800
-                     :height 600
+        form (frame :width (get-setting :main-width)
+                     :height (get-setting :main-height)
                      :on-close :dispose
                      :menubar (menubar :items [(menu :text "Options"
                                                      :items [(action :handler (partial #'font-settings! current-user-atom)
@@ -187,6 +187,11 @@
                                                           :listen
                                                           [:mouse-released
                                                            (partial list-selection current-user-atom windows sessionid)]))))]
+
+    (listen form :component-resized (fn [e]
+                                      (let [dim (config e :size)]
+                                        (swap! settings assoc :main-width (.getWidth dim)
+                                               :main-height (.getHeight dim)))))
 
     (b/bind current-user-atom (b/transform :state)
             (select form [:#state-combobox]))

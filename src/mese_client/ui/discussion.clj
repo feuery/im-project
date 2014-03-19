@@ -8,7 +8,8 @@
             [mese-test.user :refer [create-message-client]]
             [merpg.2D.core :as c]
             [mese-client.communications :refer :all]
-            [mese-client.friends :refer [state-to-color]])
+            [mese-client.friends :refer [state-to-color]]
+            [mese-client.settings :refer [get-setting]])
     (:import [java.net URL]
            [java.awt Dimension]))
 
@@ -65,8 +66,8 @@
     (let [discussion (atom [])
           current-message (atom "jeeee")
           form (frame
-                :width 640
-                :height 480 ;;TODO Setup a settings-repository for these, and update it on-resize
+                :width (get-setting :main-width)
+                :height (get-setting :main-height) ;;TODO Setup a settings-repository for these, and update it on-resize
                 :visible? true
                 :on-close :dispose
                 :content
