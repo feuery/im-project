@@ -14,4 +14,8 @@
  "13.3.2014" {:hours-spent 8 :done "GUI-juttuja"}
  "14.3.2014" {:hours-spent 3 :done "Viestin reititys clientin päässä aloitettu"}
  "15.3.2014" {:hours-spent 6 :done "GUI-juttuja"}
- "17.3.2014" {:hours-spent 6 :done "Bindaukset kuntoon, keskustelujen muotoilut aloitettu"}}
+ "17.3.2014" {:hours-spent 6 :done "Bindaukset kuntoon, keskustelujen muotoilut aloitettu"}
+ "18.3.2014" {:hours-spent 7 :done "Keskusteluikkunat loppuun. Client alkaa olla valmis tosikäyttöön."}
+ "19.3.2014" {:hours-spent 5 :done "Rikottu serverin käyttäjienhallinta, kun siirryttiin staattisesta käyttäjäsäilöstä (= C#-esimerkein, käyttäjien lisääminen vaatii koodin kääntämisen) CouchDB:lle"}
+ "20.3.2014" {:hours-spent 5 :done "Korjailtu käyttäjienhallintaa, ja riidelty virtuaalikoneita maciin testikäyttöä suunnitellen"}
+ "21.3.2014" {:hours-spent 5 :done "Korjailtu käyttäjienhallintaa"}}
