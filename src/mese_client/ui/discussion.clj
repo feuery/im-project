@@ -63,6 +63,8 @@
   {:pre [(seq-in-seq? user-keys (keys @friend))]}
   (try
     (println "Doing discussion")
+    (println "Friends state: " (:state @friend) " |Your state: " (:state @current-user-atom))
+    (println (class (:state @friend)) " " (class (:state @current-user-atom)))
     (let [discussion (atom [])
           current-message (atom "jeeee")
           form (frame

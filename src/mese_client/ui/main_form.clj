@@ -6,7 +6,7 @@
             [fontselector.core :refer [selector]]
             [clojure.string :as s]
             [mese-client.ui.discussion :refer [discussion-form]]
-            [mese-client.settings :refer [settings]]
+            [mese-client.settings :refer [settings get-setting]]
             [mese-client.friends :refer [get-current-users
                                          possible-states
                                          state-to-color]]
@@ -135,7 +135,7 @@
                                                                                      
                                                                                      
 (defn show-mainform [sessionid current-user-atom]
-  (let [userseq (atom (people-logged-in sessionid)) 
+  (let [userseq (atom (people-logged-in sessionid))
         windows (atom {})
         discussions (atom {})  ;;keys are user-handles, vals are returned by the (discussion-form) - fn.
         form (frame :width (get-setting :main-width)

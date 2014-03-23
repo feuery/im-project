@@ -11,15 +11,17 @@
 (native!)
 
 ;;TODO Remove from published versions...
-(javax.swing.UIManager/setLookAndFeel "com.sun.java.swing.plaf.gtk.GTKLookAndFeel")
+ (javax.swing.UIManager/setLookAndFeel "com.sun.java.swing.plaf.gtk.GTKLookAndFeel")
 
-(def current-user (atom nil))
+(def current-user (atom nil :validator
+                        #(or (nil? %)
+                             (keyword? (:state %)))))
 
 (defn diff [map1 map2]
   (->> (keys map1)
        (filter (partial in? (keys map2)))
        (filter #(not (= (get map1 %) (get map2 %))))))                                   
-
+ 
 ;(defn -main [& argh]
 (let [login-map (get-credentsials)]
   (comment     {:username username

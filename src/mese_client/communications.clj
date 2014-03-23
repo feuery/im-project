@@ -18,7 +18,8 @@
         (if-let [body-map (read-string body)]
           (if (:success body-map)
             (do
-              (reset! current-user-atom (:user body-map))
+              (reset! current-user-atom (assoc (:user body-map) :state
+                                               (keyword (:state (:user body-map)))))
               (:session-id body-map))
             false))))))
 

@@ -12,6 +12,8 @@
                  [com.cemerick/drawbridge "0.0.6"]
                  [clj-time "0.5.1"]
 
+                 [com.ashafa/clutch "0.4.0-RC1"]
+
                  ;;Client-deps
                  [seesaw "1.4.4"]
                  [http-kit "2.1.17"]

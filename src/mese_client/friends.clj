@@ -14,7 +14,9 @@
         (do
           (println "Result was a map: " result)
           false)
-        result))))
+        (do
+          (println "class of state: " (map (comp class :state) result))
+          result)))))
 
 (defn update-myself [sessid userhandle property value]
   (let [url (str (get-setting :server-url) "update-myself/" sessid "/" userhandle "/")
@@ -46,6 +48,7 @@
 
 (defn state-to-color [state]
   {:pre [(in? possible-states state)]}
+  ;; (println "state: " state)
   (cond
    (in? [:online] state) "#1AFF00"
    (in? [:busy] state) "#FF0000"

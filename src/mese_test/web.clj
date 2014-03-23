@@ -49,6 +49,7 @@
            (if (user-authenticates!? username password ip sessionid)
              (let [user (find-user-real username)]
                (println username " authenticated from ip " ip)
+               (println "user: " user)
                {:status 200
                 :headers {"Content-Type" "text/plain; charset=utf-8"}
                 :body (str "{:success true :session-id " @sessionid " :user " user "}")})
@@ -106,8 +107,8 @@
                       (if (session-belongs-to-user? user session-id)
                         (do
                           (println "Session belongs to us!")
-                          (let [new-user (assoc user :user
-                                                (assoc (:user user) property new-value))]
+                          (println "usr: " user)
+                          (let [new-user (assoc user property new-value)]
                             (println "Committing user " new-user)
 
                             (commit-user! user-handle new-user)
@@ -134,17 +135,18 @@
        {{session-id :session-id} :params
         ip :remote-addr}
        (try
-         ;; (println "Listing friends for " session-id ", " ip)           
+         (println "Listing friends for " session-id ", " ip)           
          (if (session-authenticates? ip session-id)
            (do
+             (println "session authed")
              (let [toret (->> (people-logged-in)
                               ;(filter user-logged-in?)
                               (map logged-out)
-                              (map #(dissoc % :password))
+                              (map #(dissoc % :password :sessions))
 ;                              (map str)
                               vec
                               str)]
-               ;; (println "Returning friends: " toret)
+               (println "Returning friends: " toret)
                {:status 200
                 :headers {"Content-Type" "text/plain; charset=utf-8"}
                 :body toret}))
@@ -165,20 +167,27 @@
           message "message"} :params
           ip :remote-addr}
         (println "Tä? msg: " message ", receiver " receiver-handle)
-        (if (session-authenticates? ip session-id)
-          (let [result (-> (ip-to-sender-handle ip)
-                           (create-message message receiver-handle)
-                           push-outbox!)]
-            (println "session authed")
-            (println "result " result)
-            {:status 200
+        (try
+          (println "sender-handle: " (ip-to-sender-handle ip))
+          (if (session-authenticates? ip session-id)
+            (let [result (-> (ip-to-sender-handle ip)
+                             (create-message message receiver-handle)
+                             push-outbox!)]
+              (println "session authed")
+              (println "result " result)
+              {:status 200
+               :headers {"Content-Type" "text/plain; charset=utf-8"}
+               :body "{:success true}"})
+            (do
+              (println "session not authed from ip " ip)
+              {:status 403
+               :headers {"Content-Type" "text/plain; charset=utf-8"}
+               :body "{:success false }"}))
+          (catch Exception ex
+            (println ex)
+            {:status 500
              :headers {"Content-Type" "text/plain; charset=utf-8"}
-             :body "{:success true}"})
-          (do
-            (println "session not authed from ip " ip)
-            {:status 403
-             :headers {"Content-Type" "text/plain; charset=utf-8"}
-             :body "{:success false }"})))
+             :body "{:success false } ; Infernal server error - admin is notified"})))
   (GET "/timestamp/"
        []
        {:status 200
