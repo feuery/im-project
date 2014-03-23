@@ -49,7 +49,9 @@
       (println "NPE in find-user")
       (throw ex))))
 
-(def Users2 (atom {}))  ;;Keys are :user-handles, values are the same things as in the old Users-atom
+(def Users2 (atom {} :validator #(or (empty? %)
+                                     (->> (vals %)
+                                          (every? (fn [el] (contains? el :password)))))))  ;;Keys are :user-handles, values are the same things as in the old Users-atom
 
 (swap! Users2 into (->> (get-users)
                          (map (fn [{user-handle :user-handle :as user}]
@@ -67,7 +69,9 @@
    false))
 
 (defn commit-user! [user-handle user]
-  (swap! Users2 assoc user-handle user))
+  (swap! Users2 (fn [old]
+                  (assoc old user-handle
+                         (assoc user :password (:password (get old user-handle)))))))
 
 (defn session-belongs-to-user? [user session-id]
   {:pre [(in? (keys user) :sessions)]}
@@ -109,6 +113,7 @@
             (every? #(= (count  %) 2) (vals @sessions)))]}
   
   (println "Authing 1st pass ")
+  (println "(user-authenticates!? " (pr-str (vec (vals @Users2))) " " username " " naked-password ")")
   (if (user-authenticates? (vals @Users2) username naked-password) ;;userdb:stä löytyy username, jonka salasana mätsää annettuun
     (do
       (println "Authed 1st pass")
@@ -174,7 +179,7 @@
 (defn session-timeout? [session-mapentry]
   ;; Session-mapentry = [ip {:last-call :sessid}]
   (try
-    (let [five-min-in-ms (* 5 60 1000)]
+    (let [five-min-in-ms (* 60 1000)]
       (< (- (System/currentTimeMillis)
             (-> session-mapentry second :last-call))
          five-min-in-ms))
@@ -230,7 +235,7 @@
                              first) ;; Shame on you if signing twice from the same ip...
           old-val (get @relevant-atom ip)
           new-val (assoc old-val :last-call (System/currentTimeMillis))
-          five-min-in-ms (* 5 60 1000)]      
+          five-min-in-ms (* 60 1000)]      
       
       (if (and (contains? sessions ip)
                (< (- (System/currentTimeMillis)

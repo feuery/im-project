@@ -1,5 +1,7 @@
 ;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
 
+;; Users2 - atom somehow loses passwords O.o
+
 (ns mese-test.web
   (:require [mese-test.auth :refer [user-authenticates!?
                                     session-authenticates?
@@ -46,6 +48,7 @@
        (try
          (println "ip " ip)
          (let [sessionid (promise)]
+           (println "Authing " username)
            (if (user-authenticates!? username password ip sessionid)
              (let [user (find-user-real username)]
                (println username " authenticated from ip " ip)
