@@ -93,7 +93,8 @@
                                                                  (number? val) (Long/parseLong (text e))
                                                                  (keyword? val) val
                                                                  :t (text e))))])])
-                                         (dissoc @user-atom :user-handle :state))
+                                         (dissoc @user-atom :user-handle :state
+                                                 :font-preferences :_rev :_id))
                                     flatten
                                     vec)))
     (catch Exception ex
