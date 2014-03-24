@@ -10,6 +10,7 @@
 ;(def Users (atom []))
 
 (def db (c/get-database "yool-im-users"))
+(def friend-db (c/get-database "yool-im-friends"))
 
 (defn sha-512 [data]
   (let [md (. java.security.MessageDigest getInstance "sha-512")]
@@ -25,11 +26,13 @@
 (defn add-user! [& params]
   (let [usr (apply create-user params)]
     (println "usr: " usr)
-    (c/put-document db usr :id (:user-handle usr))))
+    (c/put-document db usr :id (:user-handle usr))
+    (swap! Users2 assoc (:user-handle usr) usr)))
 
 (when (empty? (get-users))
   (add-user! "feuer" "Feuer" "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220/imagex100x100.jpeg" :online (sha-512 "testisalasana"))
-  (add-user! "new" "moimaailma" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana")))
+  (add-user! "new" "moimaailma" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana"))
+  (add-user! "thrd" "Kolmas kaveri" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana")))
 
 (doseq [usr (get-users)]
   (get-outbox! (:user-handle usr))
@@ -52,6 +55,31 @@
 (def Users2 (atom {} :validator #(or (empty? %)
                                      (->> (vals %)
                                           (every? (fn [el] (contains? el :password)))))))  ;;Keys are :user-handles, values are the same things as in the old Users-atom
+
+(def Friends
+  "An atomified map containing all the friends of a single user. Key is the current user's user-handle, and value is a seq of friend's user-handles"
+  (atom {}))
+
+;(reset! Friends {})
+(add-watch Friends :friend-serializer
+           (fn [_ _ _ new-state]
+             (doseq [[user-handle friend-seq] new-state]
+               (if (c/document-exists? friend-db user-handle)
+                 (let [doc (c/get-document friend-db user-handle)
+                       new-doc (assoc doc (keyword user-handle) friend-seq)]
+                   (println "updating new-doc: " new-doc)
+                   (c/update-document friend-db new-doc))
+                 (do
+                   (println "Inserting")
+                   (c/put-document friend-db {user-handle friend-seq} :id user-handle))))))
+
+(defn add-as-friend! [user-handle friend-handle]
+  {:pre [(and (contains? @Users2 friend-handle)
+              (contains? @Users2 user-handle))]}
+  (swap! Friends (fn [old]
+                   (let [friend-set (into #{} (or (get old user-handle)
+                                                  #{}))]
+                     (assoc old user-handle (conj friend-set friend-handle))))))
 
 (swap! Users2 into (->> (get-users)
                          (map (fn [{user-handle :user-handle :as user}]
