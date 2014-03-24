@@ -60,12 +60,12 @@
    (let [receiver receiver-name
          receivers-inbox (get @inboxes receiver)
          messages-to-send (->> receivers-inbox
-                               (filter #(not (in? (:sent-to-sessions %) session-id)))
+                               (filter #(not (in? (:sent-to-sessions %) ip)))
                                (sort-by :time)
                                vec)
          receivers-new-inbox (map #(if (in? messages-to-send %)
                                      (assoc % :sent-to-sessions
-                                            (conj (:sent-to-sessions %) session-id))
+                                            (conj (:sent-to-sessions %) ip))
                                      %) receivers-inbox)]
 ;     (println "receiver: " receiver)
 ;     (println "The old inbox ")
