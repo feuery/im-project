@@ -150,10 +150,8 @@
               _ (println "current-user: " current-user " for sessid: " session-id " (" (class session-id) ")")
                      toret (->> (people-logged-in)
                                 (filter #(in? (friends-of current-user) (:user-handle %)))
-                                        ;(filter user-logged-in?)
                                 (map logged-out)
                                 (map #(dissoc % :password :sessions))
-                                        ;                              (map str)
                                 vec
                                 str)]
                  (println "Returning friends: " toret)
