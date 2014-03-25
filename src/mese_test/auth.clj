@@ -23,6 +23,9 @@
        (map (comp (partial c/get-document db) :id))
        (map #(assoc % :state (keyword (:state %))))))
 
+(def Users2 (atom {} :validator #(or (empty? %)
+                                     (->> (vals %)
+                                          (every? (fn [el] (contains? el :password)))))))  ;;Keys are :user-handles, values are the same things as in the old Users-atom
 (defn add-user! [& params]
   (let [usr (apply create-user params)]
     (println "usr: " usr)
@@ -52,10 +55,6 @@
       (println "NPE in find-user")
       (throw ex))))
 
-(def Users2 (atom {} :validator #(or (empty? %)
-                                     (->> (vals %)
-                                          (every? (fn [el] (contains? el :password)))))))  ;;Keys are :user-handles, values are the same things as in the old Users-atom
-
 (def Friends
   "An atomified map containing all the friends of a single user. Key is the current user's user-handle, and value is a seq of friend's user-handles"
   (atom {}))
@@ -81,9 +80,43 @@
                                                   #{}))]
                      (assoc old user-handle (conj friend-set friend-handle))))))
 
+(swap! Friends into (->> (c/all-documents friend-db)
+		     (map :id)
+		     (map (partial c/get-document friend-db))
+		     (map (fn [val]
+			    {(:_id val) (set (get val (keyword (:_id val))))}))
+		     (reduce into)))
+                         
+
+(defn friend?
+  "This function declares user1 and user2 friends even though there exists only link for user1"
+  [userhandle1 userhandle2]
+  (boolean
+   (if (= userhandle1 userhandle2)
+     false
+     (loop [userhandle1 userhandle1
+            userhandle2 userhandle2
+            recurring? false]
+       (if recurring?
+         (or
+          (and (contains? @Friends userhandle1)
+               (-> (get @Friends userhandle1)
+                   (in? userhandle2)))
+          (recur userhandle2 userhandle1 true))
+         (and (contains? @Friends userhandle1)
+              (-> (get @Friends userhandle1)
+                  (in? userhandle2))))))))
+
+(defn -friends-of [user-db user-handle]
+  (filter (partial friend? user-handle) (keys user-db)))
+
+(def friends-of #(-friends-of @Users2 %))
+   
 (swap! Users2 into (->> (get-users)
                          (map (fn [{user-handle :user-handle :as user}]
                                 {user-handle user}))))
+
+
 
 (defn find-user-real
   "Works on the Users - atom"
@@ -310,3 +343,20 @@
        :user-handle))
 
 (def ip-to-sender-handle #(-ip-to-sender-handle @Users2 %))
+
+
+(defn -sessionid->userhandle [user-db sessionid]
+  (->> user-db
+       vals
+       (filter (fn [{sessions :sessions}]
+                 (if (nil? sessions)
+                   false
+                   (let [reduced-sessions (->> @sessions
+                                               (map second)
+                                               (map vals)
+                                               (reduce into))]
+                     (in? reduced-sessions sessionid)))))
+       first
+       :user-handle))
+
+(def sessionid->userhandle #(-sessionid->userhandle @Users2 %))

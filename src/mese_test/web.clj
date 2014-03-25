@@ -1,7 +1,11 @@
 ;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
 
+;;Put friend-filtering to /list-friends
+
 (ns mese-test.web
   (:require [mese-test.auth :refer [user-authenticates!?
+                                    friends-of
+                                    sessionid->userhandle
                                     session-authenticates?
                                     logout!
                                     commit-user!
@@ -14,6 +18,7 @@
                                     user-logged-in?]]
             [clj-time.core :as time]
             [clj-time.coerce :as tc]
+            [clojure.pprint :refer [pprint]]
             [mese-test.user :refer [create-message
                                     dump-outbox!
                                     push-outbox!]]
@@ -136,26 +141,30 @@
        {{session-id :session-id} :params
         ip :remote-addr}
        (try
-         (println "Listing friends for " session-id ", " ip)           
-         (if (session-authenticates? ip session-id)
-           (do
-             (println "session authed")
-             (let [toret (->> (people-logged-in)
-                              ;(filter user-logged-in?)
-                              (map logged-out)
-                              (map #(dissoc % :password :sessions))
-;                              (map str)
-                              vec
-                              str)]
-               (println "Returning friends: " toret)
-               {:status 200
+         (let [session-id (Long/parseLong session-id)]
+           (println "Listing friends for " session-id ", " ip)           
+           (if (session-authenticates? ip session-id)
+             (do
+               (println "session authed")
+               (let [current-user (sessionid->userhandle session-id)
+              _ (println "current-user: " current-user " for sessid: " session-id " (" (class session-id) ")")
+                     toret (->> (people-logged-in)
+                                (filter #(in? (friends-of current-user) (:user-handle %)))
+                                        ;(filter user-logged-in?)
+                                (map logged-out)
+                                (map #(dissoc % :password :sessions))
+                                        ;                              (map str)
+                                vec
+                                str)]
+                 (println "Returning friends: " toret)
+                 {:status 200
+                  :headers {"Content-Type" "text/plain; charset=utf-8"}
+                  :body toret}))
+             (do
+               (println "Session didn't auth")
+               {:status 403
                 :headers {"Content-Type" "text/plain; charset=utf-8"}
-                :body toret}))
-           (do
-             (println "Session didn't auth")
-             {:status 403
-              :headers {"Content-Type" "text/plain; charset=utf-8"}
-              :body "{:success false }"}))
+                :body "{:success false }"})))
          (catch Exception ex
            (clojure.pprint/pprint ex)
            (println "Poikkeus list-friendsissa")
