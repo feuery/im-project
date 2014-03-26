@@ -11,6 +11,7 @@
 
 (def db (c/get-database "yool-im-users"))
 (def friend-db (c/get-database "yool-im-friends"))
+(def request-db (c/get-database "yool-im-requests"))
 
 (defn sha-512 [data]
   (let [md (. java.security.MessageDigest getInstance "sha-512")]
@@ -86,6 +87,38 @@
 		     (map (fn [val]
 			    {(:_id val) (set (get val (keyword (:_id val))))}))
 		     (reduce into)))
+
+(defn create-friend-request [requester]
+  {:requester requester :accepted? false})
+
+(def Requests
+  "Map, where keys are userhandles of those requested to be friends, and values are the requests with keys :requester and accepted."
+  (atom {}))
+
+(swap! Requests into (->> (c/all-documents request-db)
+                          (map :id)
+                          (map (partial c/get-document request-db))
+                          (map (fn [val]
+                                 {(:_id val) (set (get val (keyword (:_id val))))}))
+                          (reduce into)))
+
+(add-watch Requests :request-serializer
+           (fn [_ _ _ new-state]
+             (doseq [[user-handle request-seq] new-state]
+               (if (c/document-exists? request-db user-handle)
+                 (let [doc (c/get-document request-db user-handle)
+                       new-doc (assoc doc (keyword user-handle) (set request-seq))]
+                   (println "updating: " new-doc)
+                   (c/update-document request-db new-doc))
+                 (let [doc {user-handle (set request-seq)}]
+                   (println "inserting " doc)
+                   (c/put-document request-db doc :id user-handle))))))
+
+(defn add-friend-request! [requested request]
+  (swap! Requests (fn [old]
+                   (if-let [request-list (set (get old requested))]
+                     (assoc old requested (conj request-list request))
+                     (assoc old requested #{request})))))
                          
 
 (defn friend?

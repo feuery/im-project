@@ -229,7 +229,6 @@
                                   (reset! repl-windows ref)))
 
 
-
     (listen form :component-resized (fn [e]
                                       (let [dim (config e :size)]
                                         (swap! settings assoc :main-width (.getWidth dim)
@@ -259,11 +258,8 @@
     (doto (Thread. ;;Inbox-receiver-thread
            (fn []
              (try
-               (println "Inbox receiving began")
                (loop [inbox (get-inbox sessionid)]
-                 (println "inbox (" inbox ") received")
                  (doseq [{sender :sender :as msg} inbox]
-                   (println "sender " sender)
                    (loop [{sender :sender :as msg} msg
                           counter 1]
                      (let [{discussion :discussion
@@ -271,10 +267,6 @@
                        (if (and (not (nil? discussion))
                                  (visible? window))
                          (do
-                           (println "swapping to discussion " discussion)
-                           (println (if (nil? discussion)
-                                      "discussion is nil"
-                                      "discussion isn't nil"))
                            (swap! discussion #(try
                                                 (cons msg %)
                                                 (catch NullPointerException ex
@@ -286,7 +278,6 @@
                                             first
                                             atom)
                                discussion-result (discussion-form current-user-atom sessionid usratom)]
-                           (println "Creating the discussion...")
                            (if (= counter 2)
                              (throw (Exception. "Infinite loop in the inbox-receiver-thread!")))
                            (swap! windows assoc sender {:user usratom
@@ -296,9 +287,7 @@
                  
                  (Thread/sleep (* user-poll-timespan 1000))
                  (if (visible? form)
-                   (do
-                     (println "recurring inboxthread")
-                     (recur (get-inbox sessionid)))
+                   (recur (get-inbox sessionid))
                    (println "inboxthread stopping")))
                (catch Exception ex
                  (println "Inbox-thread broken")

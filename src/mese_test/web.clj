@@ -1,6 +1,6 @@
 ;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
 
-;;Put friend-filtering to /list-friends
+;; How to do friend requests?
 
 (ns mese-test.web
   (:require [mese-test.auth :refer [user-authenticates!?
@@ -69,6 +69,11 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"})))
+  (GET "/friend-request/:session-id/:friend-handle"
+       {{session-id :session-id friend-handle :friend-handle} :params ip :remote-addr}
+       (when (session-authenticates? ip session-id)
+         
+       
   (GET "/logout/:session-id/"
        {{session-id :session-id} :params ip :remote-addr}
        (try
