@@ -7,7 +7,10 @@
                                     friends-of
                                     sessionid->userhandle
                                     session-authenticates?
+                                    requests-of
                                     logout!
+                                    add-friend-request!
+                                    create-friend-request
                                     commit-user!
                                     session-belongs-to-user?
                                     logged-out
@@ -71,8 +74,36 @@
             :body "{:success false } ; Infernal server error - admin is notified"})))
   (GET "/friend-request/:session-id/:friend-handle"
        {{session-id :session-id friend-handle :friend-handle} :params ip :remote-addr}
-       (when (session-authenticates? ip session-id)
-         
+       (try
+         (if (session-authenticates? ip session-id)
+           (let [user (sessionid->userhandle session-id)]
+             (add-friend-request! friend-handle (create-friend-request user))
+             {:status 200
+              :headers {"Content-Type" "text/plain; charset=utf-8"}
+              :body "{:success true}"})
+           {:status 403
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body "{:success false}"})
+         (catch Exception ex
+           (println ex)
+           {:status 500
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body "{:success false } ; Infernal server error - admin is notified"})))
+  (GET "/friend-requests/:session-id"
+       {{session-id :session-id} :params ip :remote-addr}
+       (if (session-authenticates? ip session-id)
+         (let [userhandle (sessionid->userhandle (Long/parseLong session-id))]
+           (println "returning requests of " userhandle)
+           {:status 200
+            :headers {"Content-Type" "text/plain; charset=utf-8"}
+            :body (str "{:success true
+:requests " (-> userhandle
+                requests-of
+                vec
+                pr-str) "}")})
+         {:status 403
+          :headers {"Content-Type" "text/plain; charset=utf-8"}
+          :body "{:success false}"}))
        
   (GET "/logout/:session-id/"
        {{session-id :session-id} :params ip :remote-addr}

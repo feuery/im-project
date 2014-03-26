@@ -18,6 +18,15 @@
           (println "class of state: " (map (comp class :state) result))
           result)))))
 
+(defn get-friend-requests [session-id]
+  (let [{body :body :as result} @(http/get (str (get-setting :server-url) "friend-requests/" session-id))]
+    (println "result@get-friend-requests: " result)
+    (if-let [result (read-string body)]
+      (if (:success result)
+        (:requests result)
+        false)
+      false)))
+
 (defn update-myself [sessid userhandle property value]
   (let [url (str (get-setting :server-url) "update-myself/" sessid "/" userhandle "/")
         options {:form-params {:property property :new-value value}}]

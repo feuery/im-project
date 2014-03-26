@@ -119,6 +119,9 @@
                    (if-let [request-list (set (get old requested))]
                      (assoc old requested (conj request-list request))
                      (assoc old requested #{request})))))
+
+(defn requests-of [user-handle]
+  (get @Requests user-handle []))
                          
 
 (defn friend?

@@ -8,6 +8,7 @@
             [mese-client.ui.discussion :refer [discussion-form]]
             [mese-client.settings :refer [settings get-setting]]
             [mese-client.friends :refer [get-current-users
+                                         get-friend-requests
                                          possible-states
                                          state-to-color]]
             [mese-client.communications :refer [get-inbox]])
@@ -135,56 +136,74 @@
 (defn settings-form [_]
   (edit-user settings))
 
+(defn accept-friend [sessionid friend-handle] )
+
+(defn show-requests-form [sessionid]
+  (frame :on-close :dispose
+         :size [302 :by 204]
+         :title "Friend requests"
+         :visible? true
+         :content (vertical-panel
+                   :items (->> (get-friend-requests sessionid)
+                               (filter (complement :accepted))
+                               (map #(horizontal-panel :items [(:requester %)
+                                                               (button :text "Accept as friend"
+                                                                       :listen [:action
+                                                                                (fn [_]
+                                                                                  (accept-friend sessionid %))])]))))))
+
 (def repl-form (atom nil))
 
 (defn get-content [current-user-atom userseq windows sessionid]
   (top-bottom-split (vertical-panel
-                     :items (map
-                             (fn [el]
-                               (doto el
-                                 (.setAlignmentX Component/LEFT_ALIGNMENT)))
-                             [(horizontal-panel
-                              :items [(-> @current-user-atom
-                                          :img-url
-                                          URL.
-                                          make-widget
-                                          (config! :id :imagebox
-                                                   :background
-                                                   (state-to-color (:state @current-user-atom))
-                                                   :size [100 :by 120]))
-                                      (vertical-panel
-                                       :items
-                                       [(horizontal-panel :items
-                                                          [(label :text (:username @current-user-atom)
-                                                                  :font "ARIAL-BOLD-18"
-                                                                  :id :username)
-                                                           (combobox :model (filter #(not (= % :real-offline)) possible-states)
-                                                                     :id :state-combobox
-                                                                     :size [200 :by 25]
-                                                                     :renderer
-                                                                     (string-renderer
-                                                                      state-renderer))])
-                                        (horizontal-panel :items [(label :text (:personal-message @current-user-atom)
-                                                                         :font "ARIAL-15"
-                                                                         :id :personal-message)])])]
-                              :listen [:mouse-released (fn [_]
-                                                         (edit-user current-user-atom))])
-                             (horizontal-panel
-                              :items [(button :text "Search friends" :id :search-friends)
-                                      (button :text "Show friend requests" :id :show-requests)])
-                             ]))
-                    
-                    (scrollable (listbox
-                                 :model (try
-                                          (first @userseq)
-                                          (catch IllegalArgumentException ex
-                                            (println "IAE napattu")
-                                            (println "userseq: " @userseq)))
-                                 :renderer (string-renderer :username)
-                                 :id :users
-                                 :listen
-                                 [:mouse-released
-                                  (partial list-selection current-user-atom windows sessionid)]))))
+                       :items (map
+                               (fn [el]
+                                 (doto el
+                                   (.setAlignmentX Component/LEFT_ALIGNMENT)))
+                               [(horizontal-panel
+                                 :items [(-> @current-user-atom
+                                             :img-url
+                                             URL.
+                                             make-widget
+                                             (config! :id :imagebox
+                                                      :background
+                                                      (state-to-color (:state @current-user-atom))
+                                                      :size [100 :by 120]))
+                                         (vertical-panel
+                                          :items
+                                          [(horizontal-panel :items
+                                                             [(label :text (:username @current-user-atom)
+                                                                     :font "ARIAL-BOLD-18"
+                                                                     :id :username)
+                                                              (combobox :model (filter #(not (= % :real-offline)) possible-states)
+                                                                        :id :state-combobox
+                                                                        :size [200 :by 25]
+                                                                        :renderer
+                                                                        (string-renderer
+                                                                         state-renderer))])
+                                           (horizontal-panel :items [(label :text (:personal-message @current-user-atom)
+                                                                            :font "ARIAL-15"
+                                                                            :id :personal-message)])])]
+                                 :listen [:mouse-released (fn [_]
+                                                            (edit-user current-user-atom))])
+                                (horizontal-panel
+                                 :items [(button :text "Search friends" :id :search-friends)
+                                         (button :text "Show friend requests"
+                                                 :id :show-requests
+                                                 :listen [:action (fn [_]
+                                                                    (show-requests-form sessionid))])])]))
+                               
+                               (scrollable (listbox
+                                            :model (try
+                                                     (first @userseq)
+                                                     (catch IllegalArgumentException ex
+                                                       (println "IAE napattu")
+                                                       (println "userseq: " @userseq)))
+                                            :renderer (string-renderer :username)
+                                            :id :users
+                                            :listen
+                                            [:mouse-released
+                                             (partial list-selection current-user-atom windows sessionid)]))))
 
 (def repl-sessionid (atom nil))
 (def repl-current-user (atom nil))
