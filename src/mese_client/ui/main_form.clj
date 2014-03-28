@@ -8,6 +8,7 @@
             [mese-client.ui.discussion :refer [discussion-form]]
             [mese-client.settings :refer [settings get-setting]]
             [mese-client.friends :refer [get-current-users
+                                         accept-request
                                          get-friend-requests
                                          possible-states
                                          state-to-color]]
@@ -136,8 +137,6 @@
 (defn settings-form [_]
   (edit-user settings))
 
-(defn accept-friend [sessionid friend-handle] )
-
 (defn show-requests-form [sessionid]
   (frame :on-close :dispose
          :size [302 :by 204]
@@ -149,8 +148,10 @@
                                (map #(horizontal-panel :items [(:requester %)
                                                                (button :text "Accept as friend"
                                                                        :listen [:action
-                                                                                (fn [_]
-                                                                                  (accept-friend sessionid %))])]))))))
+                                                                                (fn [e]
+                                                                                  (when
+                                                                                      (accept-request sessionid (:requester %))
+                                                                                    (hide! e)))])]))))))
 
 (def repl-form (atom nil))
 

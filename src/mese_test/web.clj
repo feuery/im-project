@@ -1,10 +1,11 @@
 ;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
 
-;; How to do friend requests?
+;; accept-request sucks
 
 (ns mese-test.web
   (:require [mese-test.auth :refer [user-authenticates!?
                                     friends-of
+                                    accept-request
                                     sessionid->userhandle
                                     session-authenticates?
                                     requests-of
@@ -97,13 +98,37 @@
            {:status 200
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body (str "{:success true
-:requests " (-> userhandle
+:requests " (->> userhandle
                 requests-of
                 vec
+                (filter (complement :accepted?))
                 pr-str) "}")})
          {:status 403
           :headers {"Content-Type" "text/plain; charset=utf-8"}
           :body "{:success false}"}))
+  (GET "/accept-request/:session-id/:requester-handle"
+       {{session-id :session-id requester-handle :requester-handle} :params
+        ip :remote-addr}
+       (if (session-authenticates? ip session-id)
+         (let [current-user (sessionid->userhandle (Long/parseLong session-id))
+               requests (filter (complement :accepted?)
+                                (requests-of current-user))]
+           (if (in? (map :requester requests) requester-handle)
+             (do
+               (accept-request current-user requester-handle)
+               {:status 200
+                :headers {"Content-Type" "text/plain; charset=utf-8"}
+                :body (str "{:success true}")})
+             (do
+               (println "Current user: " current-user "| Not found " requester-handle " in " (map :requester requests))
+               {:status 403
+                :headers {"Content-Type" "text/plain; charset=utf-8"}
+                :body "{:success false ;1
+}"})))
+         {:status 403
+          :headers {"Content-Type" "text/plain; charset=utf-8"}
+          :body "{:success false ;2
+}"}))
        
   (GET "/logout/:session-id/"
        {{session-id :session-id} :params ip :remote-addr}

@@ -27,6 +27,19 @@
         false)
       false)))
 
+(defn accept-request [session-id requester-handle]
+  (println "Accepting " requester-handle)
+  (let [url (str (get-setting :server-url) "accept-request/" session-id "/" requester-handle)]
+    (println "url: " url)
+    (let [{body :body :as result} @(http/get url)]
+      (println "result@accept-request: " body)
+      (if-let [result (read-string body)]
+        (if (and (map? result)
+                 (contains? result :success))
+          (:success result)
+          (throw (Exception. "Received rubbish from the server: " body)))
+        false))))
+
 (defn update-myself [sessid userhandle property value]
   (let [url (str (get-setting :server-url) "update-myself/" sessid "/" userhandle "/")
         options {:form-params {:property property :new-value value}}]

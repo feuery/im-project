@@ -81,12 +81,13 @@
                                                   #{}))]
                      (assoc old user-handle (conj friend-set friend-handle))))))
 
-(swap! Friends into (->> (c/all-documents friend-db)
+(let [data (->> (c/all-documents friend-db)
 		     (map :id)
 		     (map (partial c/get-document friend-db))
 		     (map (fn [val]
-			    {(:_id val) (set (get val (keyword (:_id val))))}))
-		     (reduce into)))
+			    {(:_id val) (set (get val (keyword (:_id val))))})))]
+  (when-not (empty? data)
+    (swap! Friends into  (reduce into data))))
 
 (defn create-friend-request [requester]
   {:requester requester :accepted? false})
@@ -95,12 +96,13 @@
   "Map, where keys are userhandles of those requested to be friends, and values are the requests with keys :requester and accepted."
   (atom {}))
 
-(swap! Requests into (->> (c/all-documents request-db)
-                          (map :id)
-                          (map (partial c/get-document request-db))
-                          (map (fn [val]
-                                 {(:_id val) (set (get val (keyword (:_id val))))}))
-                          (reduce into)))
+(let [data (->> (c/all-documents request-db)
+                (map :id)
+                (map (partial c/get-document request-db))
+                (map (fn [val]
+                       {(:_id val) (set (get val (keyword (:_id val))))})))]
+  (when-not (empty? data)
+    (swap! Requests into (reduce into data))))
 
 (add-watch Requests :request-serializer
            (fn [_ _ _ new-state]
@@ -114,6 +116,26 @@
                    (println "inserting " doc)
                    (c/put-document request-db doc :id user-handle))))))
 
+(defn translate-requests
+  "Translates Requests - map into form which makes updating the Friends - map easier"
+  [rq]
+  (if-not (empty? rq)
+    (->> rq
+       (map (fn [mapentry]
+              (map (fn [requestmap]
+                     (assoc requestmap :requested (first mapentry))) (second mapentry))))
+       (reduce into)
+       (filter :accepted?))
+    []))
+
+(add-watch Requests :request-accepter
+           (fn [_ _ _ new-state]
+             (doseq [{requested :requested
+                      requester :requester} (translate-requests new-state)]
+               (println "Adding " requested " as " requester "'s friend")
+               (add-as-friend! requested requester))))
+             
+
 (defn add-friend-request! [requested request]
   (swap! Requests (fn [old]
                    (if-let [request-list (set (get old requested))]
@@ -122,6 +144,16 @@
 
 (defn requests-of [user-handle]
   (get @Requests user-handle []))
+
+(defn accept-request [accepter requester]
+  (swap! Requests (fn [old]
+                    (if-let [request-set (get old accepter)]
+                      (let [relevant-request  (into {} (filter
+                                               #(= (:requester %) requester)
+                                               request-set))
+                            other-requests (vec (filter #(not= % relevant-request) request-set))]
+                        (assoc old accepter (set (conj other-requests (assoc relevant-request :accepted? true)))))
+                      old))))
                          
 
 (defn friend?
