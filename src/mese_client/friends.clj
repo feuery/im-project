@@ -27,6 +27,17 @@
         false)
       false)))
 
+(defn send-request [session-id friend-handle]
+  (let [{body :body :as result} @(http/get (str (get-setting :server-url) "friend-request/" session-id "/" friend-handle))]
+    (println "result@send-request: " result)
+    (if-let [result (read-string body)]
+      (if (and (map? result)
+               (contains? result :success))
+        (:success result)
+        false)
+      false)))
+  
+
 (defn accept-request [session-id requester-handle]
   (println "Accepting " requester-handle)
   (let [url (str (get-setting :server-url) "accept-request/" session-id "/" requester-handle)]

@@ -8,6 +8,7 @@
             [mese-client.ui.discussion :refer [discussion-form]]
             [mese-client.settings :refer [settings get-setting]]
             [mese-client.friends :refer [get-current-users
+                                         send-request
                                          accept-request
                                          get-friend-requests
                                          possible-states
@@ -188,7 +189,12 @@
                                  :listen [:mouse-released (fn [_]
                                                             (edit-user current-user-atom))])
                                 (horizontal-panel
-                                 :items [(button :text "Search friends" :id :search-friends)
+                                 :items [(button :text "Ask a friend"
+                                                 :id :search-friends
+                                                 :listen [:action (fn [_]
+                                                                    (let [friend-handle (input "Friend's user-handle")]
+                                                                      (when-not (empty? friend-handle)
+                                                                        (send-request sessionid friend-handle))))])
                                          (button :text "Show friend requests"
                                                  :id :show-requests
                                                  :listen [:action (fn [_]

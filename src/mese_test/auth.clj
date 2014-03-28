@@ -166,17 +166,18 @@
             userhandle2 userhandle2
             recurring? false]
        (if recurring?
+         (and (contains? @Friends userhandle1)
+              (-> (get @Friends userhandle1)
+                  (in? userhandle2)))
          (or
           (and (contains? @Friends userhandle1)
                (-> (get @Friends userhandle1)
                    (in? userhandle2)))
-          (recur userhandle2 userhandle1 true))
-         (and (contains? @Friends userhandle1)
-              (-> (get @Friends userhandle1)
-                  (in? userhandle2))))))))
+          (recur userhandle2 userhandle1 true)))))))
 
 (defn -friends-of [user-db user-handle]
-  (filter (partial friend? user-handle) (keys user-db)))
+  (filter (partial friend? user-handle) (keys user-db))
+      
 
 (def friends-of #(-friends-of @Users2 %))
    
@@ -191,10 +192,11 @@
   [user-handle & {:keys [with-sessions?] :or {with-sessions? false}}]
   (or
    (let [user (get @Users2 user-handle)]
-     (println "real-user: " user "| with-sessions? " with-sessions?)
-     (if with-sessions?
-       (dissoc user :password) 
-       (dissoc user :password :sessions)))
+     (do
+       (println "real-user: " user "| with-sessions? " with-sessions?)
+       (if with-sessions?
+         (dissoc user :password) 
+         (dissoc user :password :sessions))))
    false))
 
 (defn commit-user! [user-handle user]

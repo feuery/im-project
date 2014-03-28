@@ -4,7 +4,7 @@
 
 (ns mese-test.web
   (:require [mese-test.auth :refer [user-authenticates!?
-                                    friends-of
+                                    friend?
                                     accept-request
                                     sessionid->userhandle
                                     session-authenticates?
@@ -76,15 +76,21 @@
   (GET "/friend-request/:session-id/:friend-handle"
        {{session-id :session-id friend-handle :friend-handle} :params ip :remote-addr}
        (try
-         (if (session-authenticates? ip session-id)
-           (let [user (sessionid->userhandle session-id)]
-             (add-friend-request! friend-handle (create-friend-request user))
-             {:status 200
+         (println "Beginning /friend-request/")
+         (let [session-id (Long/parseLong session-id)]
+           (if (session-authenticates? ip session-id)
+             (let [user (sessionid->userhandle session-id)]
+               (if (find-user-real friend-handle)
+                 (do
+                   (println "Adding request from " user " to " friend-handle)
+                   (add-friend-request! friend-handle (create-friend-request user)))
+                 (println "User " friend-handle " not found"))
+               {:status 200
+                :headers {"Content-Type" "text/plain; charset=utf-8"}
+                :body "{:success true}"})
+             {:status 403
               :headers {"Content-Type" "text/plain; charset=utf-8"}
-              :body "{:success true}"})
-           {:status 403
-            :headers {"Content-Type" "text/plain; charset=utf-8"}
-            :body "{:success false}"})
+              :body "{:success false}"}))
          (catch Exception ex
            (println ex)
            {:status 500
@@ -210,7 +216,7 @@
                (let [current-user (sessionid->userhandle session-id)
               _ (println "current-user: " current-user " for sessid: " session-id " (" (class session-id) ")")
                      toret (->> (people-logged-in)
-                                (filter #(in? (friends-of current-user) (:user-handle %)))
+                                (filter #(friend? current-user (:user-handle %))))
                                 (map logged-out)
                                 (map #(dissoc % :password :sessions))
                                 vec
