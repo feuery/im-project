@@ -176,7 +176,7 @@
           (recur userhandle2 userhandle1 true)))))))
 
 (defn -friends-of [user-db user-handle]
-  (filter (partial friend? user-handle) (keys user-db))
+  (filter (partial friend? user-handle) (keys user-db)))
       
 
 (def friends-of #(-friends-of @Users2 %))
@@ -285,10 +285,21 @@
     ;; (println "sessid: " (class sessionid) "; ip: " (class ip))
     (let [filtered-stuff (->> users
                               (filter #(and
-                                        (contains? (-> %
-                                                       :sessions
-                                                       deref) ip)
-                                        (= (-> % :sessions deref (get ip) :session-id str) sessionid))))]
+                                          (contains? % :sessions)
+                                          (do
+                                            (println "Contains sessions")
+                                            true)
+                                          (contains? (-> %
+                                                         :sessions
+                                                         deref) ip)
+                                          (do
+                                            (println "contains ip")
+                                            true)
+                                          (= (-> % :sessions deref (get ip) :session-id str) sessionid)
+                                          (do
+                                            (println "sessionid:t mätsäävät")
+                                            true))))]
+      (println "Filtered stuff: " filtered-stuff)
       (if (empty? filtered-stuff)
         (do
           (println "(empty filtered-stuff)")

@@ -225,7 +225,7 @@
       (println "Tä?")
       (println ex))))
                                                                                      
-(defn show-mainform [sessionid current-user-atom]
+(defn show-mainform [sessionid current-user-atom restart-fn]
   (let [userseq (atom (people-logged-in sessionid))
         windows (atom {})
         discussions (atom {})  ;;keys are user-handles, vals are returned by the (discussion-form) - fn.
@@ -327,15 +327,26 @@
                (println "Starting")
                (loop []
                  (try
-                   (let [new-users (filter
-                                    #(not (= (:user-handle %) (:user-handle @current-user-atom)))
-                                    (people-logged-in sessionid))]
-                     (try
-                       (reset! userseq new-users)
-                       (catch Exception ex
-                         (println "Käyttäjäpäivitys hajoaa resetin alla")
-                         (println "new-users: " new-users)
-                         (throw ex))))
+                   (let [people (people-logged-in sessionid)]
+                     (if people
+                       (let [new-users (filter
+                                        #(not (= (:user-handle %) (:user-handle @current-user-atom)))
+                                        people)]
+                         (try
+                           (reset! userseq new-users)
+                           (catch Exception ex
+                             (println "Käyttäjäpäivitys hajoaa resetin alla")
+                             (println "new-users: " new-users)
+                             (throw ex))))
+                       (do
+                         (alert "You seem to have been logged out")
+                         (hide! form)
+                         (->> @windows
+                              vals
+                              (map :window)
+                              (map hide!)
+                              dorun)
+                         (restart-fn))))
                    (catch Exception ex
                      (println "Vai people-logged-inin alla?")
                      (throw ex)))

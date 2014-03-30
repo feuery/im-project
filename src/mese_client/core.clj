@@ -23,39 +23,40 @@
        (filter #(not (= (get map1 %) (get map2 %))))))                                   
  
 ;(defn -main [& argh]
-(let [login-map (get-credentsials)]
-  (comment     {:username username
-     :password password
-     :window-state window-state})
-  
-  (while (= @(:window-state login-map) :open)
-    (Thread/sleep 5))
+((fn main [] 
+  (let [login-map (get-credentsials)]
+    (comment     {:username username
+                  :password password
+                  :window-state window-state})
+    
+    (while (= @(:window-state login-map) :open)
+      (Thread/sleep 5))
 
-  
-  (when (= @(:window-state login-map) :ready)
-    (let [{username :username
-           password :password} (map-to-values deref login-map)
-          _ (println "salis: " password)
-          session-id (login username password current-user)]
-      (if session-id
-        (do
-          (println "sessid: " session-id)
-          (println "Showing mainform")
-          (add-watch current-user :watcher  (fn [_ _ old new]
-                                              (println "New of current-user: " new)
-                                              (let [diff-keys (diff old new)]
-                                                (doseq [key diff-keys]
-                                                  (when-not (= key :font-preferences)
-                                                    (println "Updating " key " with val " (get new key))
-                                                    (update-myself session-id (:user-handle @current-user) key (get new key)))
-                                                  (when (= key :font-preferences)
-                                                    (let [new-prefs (get new key)]
-                                                      (update-font session-id (:user-handle @current-user) ;;There has to be a way to make this less-fugly
-                                                                   :bold? (get new-prefs :bold?)
-                                                                   :italic? (get new-prefs :italic?)
-                                                                   :underline? (get new-prefs :underline?)
-                                                                   :color (get new-prefs :color)
-                                                                   :font-name (get new-prefs :font-name))))))))
+    
+    (when (= @(:window-state login-map) :ready)
+      (let [{username :username
+             password :password} (map-to-values deref login-map)
+             _ (println "salis: " password)
+             session-id (login username password current-user)]
+        (if session-id
+          (do
+            (println "sessid: " session-id)
+            (println "Showing mainform")
+            (add-watch current-user :watcher  (fn [_ _ old new]
+                                                (println "New of current-user: " new)
+                                                (let [diff-keys (diff old new)]
+                                                  (doseq [key diff-keys]
+                                                    (when-not (= key :font-preferences)
+                                                      (println "Updating " key " with val " (get new key))
+                                                      (update-myself session-id (:user-handle @current-user) key (get new key)))
+                                                    (when (= key :font-preferences)
+                                                      (let [new-prefs (get new key)]
+                                                        (update-font session-id (:user-handle @current-user) ;;There has to be a way to make this less-fugly
+                                                                     :bold? (get new-prefs :bold?)
+                                                                     :italic? (get new-prefs :italic?)
+                                                                     :underline? (get new-prefs :underline?)
+                                                                     :color (get new-prefs :color)
+                                                                     :font-name (get new-prefs :font-name))))))))
 
-          (show-mainform session-id current-user))
-        (str "sessid-fail: " session-id)))))
+            (show-mainform session-id current-user -main))
+          (str "sessid-fail: " session-id)))))))
