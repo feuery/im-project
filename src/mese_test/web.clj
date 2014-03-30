@@ -53,7 +53,7 @@
        (try
          (println "ip " ip)
          (let [sessionid (promise)]
-           (println "Authing " username)
+           (println "Authing " username " with pw " password)
            (if (user-authenticates!? username password ip sessionid)
              (let [user (find-user-real username)]
                (println username " authenticated from ip " ip)
@@ -242,7 +242,8 @@
         (println "Tä? msg: " message ", receiver " receiver-handle)
         (try
           (println "sender-handle: " (ip-to-sender-handle ip))
-          (if (session-authenticates? ip session-id)
+          (if (and (session-authenticates? ip session-id)
+                   (friend? receiver-handle (sessionid->userhandle session-id)))
             (let [result (-> (ip-to-sender-handle ip)
                              (create-message message receiver-handle)
                              push-outbox!)]

@@ -220,9 +220,10 @@
       ;; (println "(in? " session-ids " " (str session-id) ")")
       (in? session-ids (str session-id)))))
 
-(defn user-authenticates? [user-db username naked-password]
-  (let [password (sha-512 naked-password)
-        user (find-user user-db username)]
+(defn user-authenticates? [user-db username password]
+  (let [user (find-user user-db username)
+        ;; password (sha-512 password)
+        ]
     (pprint user-db)
     (println "user: " user)
     (= password (:password user))))

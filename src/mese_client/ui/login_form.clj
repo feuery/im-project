@@ -1,5 +1,6 @@
 (ns mese-client.ui.login-form
   (:require [seesaw.core :refer :all]
+            [mese-test.auth :refer [sha-512]]
             [seesaw.bind :as b]
             [mese-test.util :refer [in?]]))
 
@@ -41,7 +42,9 @@
                                 (when (= keychar \newline)
                                   (login-event-fn nil)))))
     (b/bind usrnamefield username)
-    (b/bind passwordfield password)
+    (b/bind passwordfield
+            (b/transform sha-512)
+            password)
 
     (comment    (doseq [a [username password window-state]]
                   (add-watch a :jee (fn [_ _ _ new-val]
