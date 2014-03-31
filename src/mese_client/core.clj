@@ -24,8 +24,8 @@
        (filter (partial in? (keys map2)))
        (filter #(not (= (get map1 %) (get map2 %))))))                                   
  
-;(defn -main [& argh]
-((fn main [] 
+(defn -main [& argh]
+;((fn main [] 
   (let [login-map (get-credentsials)]
     (comment     {:username username
                   :password password
@@ -61,5 +61,5 @@
                                                                      :font-name (get new-prefs :font-name))))))))
 
             (show-mainform session-id current-user main))
-          (str "sessid-fail: " session-id)))))))
+          (str "sessid-fail: " session-id))))))
 
