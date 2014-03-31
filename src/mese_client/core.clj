@@ -11,7 +11,9 @@
 (native!)
 
 ;;TODO Remove from published versions...
- (javax.swing.UIManager/setLookAndFeel "com.sun.java.swing.plaf.gtk.GTKLookAndFeel")
+
+(when (= (System/getProperty "os.name") "Linux")
+  (javax.swing.UIManager/setLookAndFeel "com.sun.java.swing.plaf.gtk.GTKLookAndFeel")) ;;Because Swing is ugly on KDE without this
 
 (def current-user (atom nil :validator
                         #(or (nil? %)

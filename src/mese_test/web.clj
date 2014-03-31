@@ -1,15 +1,17 @@
 ;;If client jams emacs, start the repl in terminal, although that seems to break the (println) in the server-side
 
 (ns mese-test.web
-  (:require [mese-test.auth :refer [user-authenticates!?
-                                    friend?
-                                    accept-request
+  (:require [mese-test.auth.friend-db :refer [friend?]]
+            [mese-test.auth.request-db :refer [add-friend-request!
+                                               requests-of
+                                               accept-request
+                                               create-friend-request]]
+                                               
+             [mese-test.auth.user-db :refer [user-authenticates!?
                                     sessionid->userhandle
                                     session-authenticates?
-                                    requests-of
                                     logout!
-                                    add-friend-request!
-                                    create-friend-request
+                           
                                     commit-user!
                                     session-belongs-to-user?
                                     logged-out
