@@ -241,9 +241,9 @@
           ip :remote-addr}
         (println "Tä? msg: " message ", receiver " receiver-handle)
         (try
-          (println "sender-handle: " (ip-to-sender-handle ip))
+          ; (println session-id "/" (sessionid->userhandle session-id) " sending to " receiver-handle)
           (if (and (session-authenticates? ip session-id)
-                   (friend? receiver-handle (sessionid->userhandle session-id)))
+                   (friend? receiver-handle (sessionid->userhandle (Long/parseLong session-id))))
             (let [result (-> (ip-to-sender-handle ip)
                              (create-message message receiver-handle)
                              push-outbox!)]

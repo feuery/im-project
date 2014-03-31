@@ -11,7 +11,8 @@
             [mese-client.friends :refer [state-to-color]]
             [mese-client.settings :refer [get-setting]])
     (:import [java.net URL]
-           [java.awt Dimension]))
+             [java.awt Dimension]
+             [javax.swing.text DefaultCaret]))
 
 (comment
             +-------------------------------------------------------+
@@ -102,7 +103,9 @@
                                                      :east (button :text "SEND" :listen [:action-performed
                                                                                          (fn [_]
                                                                                            (alert "Not implemented"))]))
-                                       :divider-location 2/3)])]))]
+                                       :divider-location 2/3)])]))
+          discusion-caret (.getCaret (select form [:#discussion]))]
+      (.setUpdatePolicy discusion-caret DefaultCaret/ALWAYS_UPDATE)
       (add-watch discussion :msg-sender (fn [_ _ _ [{sender :sender
                                                      message :message :as new-msg} & _]]
 ;                                          (println sender " = " 
