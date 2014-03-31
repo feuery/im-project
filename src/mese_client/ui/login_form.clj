@@ -1,10 +1,37 @@
 (ns mese-client.ui.login-form
   (:require [seesaw.core :refer :all]
+            [mese-client.settings :refer [settings]]
             [mese-test.auth :refer [sha-512]]
             [seesaw.bind :as b]
             [mese-test.util :refer [in?]]))
 
 (def window-states [:open :canceled :ready])
+
+(defn edit-settings [user-atom]
+  (try
+    (frame :size [320 :by 240]
+           :title "Propertyeditor"
+           :visible? true
+           
+           :content (grid-panel :columns 2 :items
+                                (-> (map (fn [[key val]]
+                                       [(str key)
+                                        (text :text (str val)
+                                              :listen [:document
+                                                       (fn [e]
+                                                         (println "Swapping " key " to " (text e) " on " user-atom)
+                                                         (swap! user-atom assoc key
+                                                                (cond
+                                                                 (number? val) (Long/parseLong (text e))
+                                                                 (keyword? val) val
+                                                                 :t (text e))))])])
+                                         (dissoc @user-atom :user-handle :state
+                                                 :font-preferences :_rev :_id))
+                                    flatten
+                                    vec)))
+    (catch Exception ex
+      (println "Plöp")
+      (println ex))))
 
 (defn get-credentsials
   "When value of atom of key :window-state is :ready, other atoms contain the information asked from the user. While the value is :open, the form is open, and when it is :canceled, user has canceled the login and the app should kill itself"
@@ -20,6 +47,12 @@
                  :width 300
                  :height 150
                  :visible? true
+
+                 :menubar (menubar :items [(menu :text "Options"
+                                                 :items [(action :handler (fn [_]
+                                                                            (edit-settings settings))
+                                                                 :name "System settings")])])
+                 
                  :on-close :dispose
                  :listen [:window-closed (fn [_]
                                            (if (= @window-state :open)

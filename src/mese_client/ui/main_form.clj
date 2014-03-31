@@ -241,7 +241,14 @@
                                                                      :name "System settings")])])
                      
                      :visible? true
-                     :content (get-content current-user-atom userseq windows sessionid))]
+                     :content (get-content current-user-atom userseq windows sessionid)
+                     :listen [:window-closed
+                              (fn [_]
+                                (->> @windows
+                                     vals
+                                     (map :window)
+                                     (map dispose!)
+                                     dorun))])]
     (reset! repl-form form)
     (reset! repl-sessionid sessionid)
     (reset! repl-current-user current-user-atom)
