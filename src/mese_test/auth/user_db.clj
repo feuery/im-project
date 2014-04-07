@@ -6,7 +6,8 @@
             [clojure.pprint :refer :all]
             [mese-test.auth :refer [sha-512]]
             [mese-test.util :refer [in?
-                                    to-number]]))
+                                    to-number]]
+            [mese-test.db :refer [serialize]]))
 
 (def db (c/get-database "yool-im-users"))
 
