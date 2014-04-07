@@ -3,14 +3,11 @@
                                     get-outbox!
                                     get-inbox!]]
             [mese-test.auth.user-db :refer [Users2]]
-            [com.ashafa.clutch :as c]
+            [mese-test.db :refer [de-serialize serialize]]
             [clojure.pprint :refer :all]
             [mese-test.auth :refer [sha-512]]
             [mese-test.util :refer [in?
                                     to-number]]))
-
-
-(def friend-db (c/get-database "yool-im-friends"))
 
 (def Friends
   "An atomified map containing all the friends of a single user. Key is the current user's user-handle, and value is a seq of friend's user-handles"
@@ -19,15 +16,7 @@
 ;(reset! Friends {})
 (add-watch Friends :friend-serializer
            (fn [_ _ _ new-state]
-             (doseq [[user-handle friend-seq] new-state]
-               (if (c/document-exists? friend-db user-handle)
-                 (let [doc (c/get-document friend-db user-handle)
-                       new-doc (assoc doc (keyword user-handle) friend-seq)]
-                   (println "updating new-doc: " new-doc)
-                   (c/update-document friend-db new-doc))
-                 (do
-                   (println "Inserting")
-                   (c/put-document friend-db {user-handle friend-seq} :id user-handle))))))
+            (serialize "friends" new-state)))
 
 (defn add-as-friend! [user-handle friend-handle]
   {:pre [(and (contains? @Users2 friend-handle)
@@ -37,13 +26,9 @@
                                                   #{}))]
                      (assoc old user-handle (conj friend-set friend-handle))))))
 
-(let [data (->> (c/all-documents friend-db)
-		     (map :id)
-		     (map (partial c/get-document friend-db))
-		     (map (fn [val]
-			    {(:_id val) (set (get val (keyword (:_id val))))})))]
+(let [data (de-serialize "friends")]
   (when-not (empty? data)
-    (swap! Friends into  (reduce into data))))
+    (swap! Friends into data)))
 
 (defn friend?
   "This function declares user1 and user2 friends even though there exists only link for user1"

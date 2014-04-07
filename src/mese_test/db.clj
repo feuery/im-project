@@ -45,7 +45,8 @@
               (where {:entity_name key})))))
 
 (defn de-serialize [key]
-  (let [data (select data)]
+  (let [data (select data
+                     (where {:entity_name key}))]
     (cond
      (empty? data) []
      :t (-> data
