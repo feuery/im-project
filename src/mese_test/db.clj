@@ -31,14 +31,25 @@
 (select data)
 
 (defn serialize [key data-object]
-  (insert data
-          (values {:entity_name key
-                   :data (pr-str data-object)})))
+  (if (empty? (select data
+                      (where {:entity_name key})))
+    (do
+      (println "Inserting stuff to " key)
+      (insert data
+              (values {:entity_name key
+                       :data (pr-str data-object)})))
+    (do
+      (println "Updating stuff on " key)
+      (update data
+              (set-fields {:data (pr-str data-object)})
+              (where {:entity_name key})))))
 
 (defn de-serialize [key]
-  (-> data
-      select
-      first
-      :data
-      read-string))
+  (let [data (select data)]
+    (cond
+     (empty? data) []
+     :t (-> data
+            first
+            :data
+            read-string))))
   

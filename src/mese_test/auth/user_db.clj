@@ -2,40 +2,38 @@
   (:require [mese-test.user :refer [create-user
                                     get-outbox!
                                     get-inbox!]]
-            [com.ashafa.clutch :as c]
+            
             [clojure.pprint :refer :all]
             [mese-test.auth :refer [sha-512]]
             [mese-test.util :refer [in?
                                     to-number]]
-            [mese-test.db :refer [serialize]]))
+            [mese-test.db :refer [de-serialize serialize]]))
 
-(def db (c/get-database "yool-im-users"))
 
 (defn get-users []
-  (->> (c/all-documents db)
-       (map (comp (partial c/get-document db) :id))
-       (map #(assoc % :state (keyword (:state %))))))
+  (de-serialize "users"))
+       
 
 (def Users2 (atom {} :validator #(or (empty? %)
                                      (->> (vals %)
                                           (every? (fn [el] (contains? el :password)))))))  ;;Keys are :user-handles, values are the same things as in the old Users-atom
+
+(add-watch Users2 :db-serializer (fn [_ _ _ new]
+                                   (serialize "users" new)))
+
 (defn add-user! [& params]
   (let [usr (apply create-user params)]
     (println "usr: " usr)
-    (c/put-document db usr :id (:user-handle usr))
-    (swap! Users2 assoc (:user-handle usr) usr)))
+    (swap! Users2 assoc (:user-handle usr) usr))) ;;Let the watch take care of serializing...
 
 (when (empty? (get-users))
   (add-user! "feuer" "Feuer" "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220/imagex100x100.jpeg" :online (sha-512 "testisalasana"))
   (add-user! "new" "moimaailma" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana"))
   (add-user! "thrd" "Kolmas kaveri" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana")))
 
-(doseq [usr (get-users)]
+(doseq [[_ usr] (get-users)]
   (get-outbox! (:user-handle usr))
   (get-inbox! (:user-handle usr)))
-
-(defn update-user! [usr]
-  (c/update-document db usr))
 
 (defn find-user
   "Doesn't work on the Users - atom"
@@ -48,10 +46,7 @@
       (println "NPE in find-user")
       (throw ex))))
    
-(swap! Users2 into (->> (get-users)
-                         (map (fn [{user-handle :user-handle :as user}]
-                                {user-handle user}))))
-
+(swap! Users2 into (get-users))
 
 
 (defn find-user-real
