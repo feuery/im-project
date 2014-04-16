@@ -30,6 +30,7 @@
    :personal-message "This is a personal message"
    :font-preferences {:bold? false
                       :italic? false
+                      
                       :underline? false
                       :color "#000000"
                       :font-name "arial"}})

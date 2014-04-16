@@ -246,9 +246,13 @@
           ; (println session-id "/" (sessionid->userhandle session-id) " sending to " receiver-handle)
           (if (and (session-authenticates? ip session-id)
                    (friend? receiver-handle (sessionid->userhandle (Long/parseLong session-id))))
-            (let [result (-> (ip-to-sender-handle ip)
-                             (create-message message receiver-handle)
-                             push-outbox!)]
+            (let [result (try
+                           (-> (ip-to-sender-handle ip)
+                               (create-message message receiver-handle)
+                               push-outbox!)
+                           (catch NullPointerException ex
+                             (println "NPE@result-gathering")
+                             (throw ex)))]
               (println "session authed")
               (println "result " result)
               {:status 200

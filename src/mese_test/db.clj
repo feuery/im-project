@@ -28,7 +28,7 @@
 
 (defentity data )
 
-(select data)
+;(select data)
 
 (defn serialize [key data-object]
   (if (empty? (select data
@@ -49,8 +49,9 @@
                      (where {:entity_name key}))]
     (cond
      (empty? data) []
-     :t (-> data
-            first
-            :data
-            read-string))))
+     :t (let [data (-> data
+                       first
+                       :data)]
+          (println "deserializing " data)
+          (read-string data)))))
   

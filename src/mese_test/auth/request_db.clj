@@ -3,37 +3,23 @@
                                     get-outbox!
                                     get-inbox!]]
             [mese-test.auth.friend-db :refer [add-as-friend!]]
-            [com.ashafa.clutch :as c]
+            [mese-test.db :refer [de-serialize serialize]]
             [clojure.pprint :refer :all]
             [mese-test.auth :refer [sha-512]]
             [mese-test.util :refer [in?
                                     to-number]]))
 
-(def request-db (c/get-database "yool-im-requests"))
-
 (def Requests
   "Map, where keys are userhandles of those requested to be friends, and values are the requests with keys :requester and accepted."
   (atom {}))
 
-(let [data (->> (c/all-documents request-db)
-                (map :id)
-                (map (partial c/get-document request-db))
-                (map (fn [val]
-                       {(:_id val) (set (get val (keyword (:_id val))))})))]
+(let [data (de-serialize "requests")]
   (when-not (empty? data)
-    (swap! Requests into (reduce into data))))
+    (swap! Requests into data)))
 
 (add-watch Requests :request-serializer
            (fn [_ _ _ new-state]
-             (doseq [[user-handle request-seq] new-state]
-               (if (c/document-exists? request-db user-handle)
-                 (let [doc (c/get-document request-db user-handle)
-                       new-doc (assoc doc (keyword user-handle) (set request-seq))]
-                   (println "updating: " new-doc)
-                   (c/update-document request-db new-doc))
-                 (let [doc {user-handle (set request-seq)}]
-                   (println "inserting " doc)
-                   (c/put-document request-db doc :id user-handle))))))
+             (serialize "requests" new-state)))
 
 (defn translate-requests
   "Translates Requests - map into form which makes updating the Friends - map easier"

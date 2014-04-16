@@ -19,7 +19,9 @@
                                           (every? (fn [el] (contains? el :password)))))))  ;;Keys are :user-handles, values are the same things as in the old Users-atom
 
 (add-watch Users2 :db-serializer (fn [_ _ _ new]
-                                   (serialize "users" new)))
+                                   (let [new (zipmap (keys new) (map #(dissoc % :sessions) (vals new)))]
+                                     (println "Serializing users: " new)
+                                     (serialize "users" new))))
 
 (defn add-user! [& params]
   (let [usr (apply create-user params)]
@@ -233,32 +235,53 @@
                         (filter :sessions)
                         (map (comp deref :sessions))
                         (reduce merge))
-          relevant-atom (->> @Users2
+          relevant-atoms (->> @Users2
                              vals
                              (map :sessions)
-                             (filter #(contains? @% ip))
-                             first) ;; Shame on you if signing twice from the same ip...
+                             (filter (complement nil?))
+                             (filter #(try
+                                        (->> @%
+                                           first
+                                           second
+                                           :session-id
+                                           (=  session-id))
+                                        (catch NullPointerException ex
+                                          (println "NPE@relevan-atoms-filter-thingy")
+                                          (throw ex)))))
+          _ (println "Count of relevant-atoms: " (count relevant-atoms))
+          relevant-atom (first relevant-atoms) ;; Shame on you if signing twice from the same ip...
           old-val (get @relevant-atom ip)
           new-val (assoc old-val :last-call (System/currentTimeMillis))
-          five-min-in-ms (* 60 1000)]      
+          five-min-in-ms (* 60 1000)
+          ]
       
       (if (and (contains? sessions ip)
                (< (- (System/currentTimeMillis)
                      (-> sessions (get ip) :last-call))
                   five-min-in-ms))
         (try
+          (println "First cond in session-authenticates? is good")
           (if (= (to-number session-id) (to-number (:session-id (get sessions ip))))
             (do
+              (println "Second is too")
               (swap! relevant-atom assoc ip new-val)
               true)
-            false)
+            (do
+              (println "(= " (to-number session-id) " " (to-number (:session-id (get sessions ip))))
+              (println "Second is bad")
+              false))
           (catch ClassCastException ex
             (println "session-id " session-id " (" (class session-id) ") tai " (:session-id (get sessions ip)) " ( " (class (:session-id (get sessions ip))) ") kusee")
             (throw ex)))
         (do
           (println "WTF?")
+          (println "contains sessions " ip "? " (contains? sessions ip))
+          (println "timeout?" (< (- (System/currentTimeMillis)
+                                    (-> sessions (get ip) :last-call))
+                                 five-min-in-ms))
           false)))
     (catch Exception ex
+      (println "WTF²?")
       (println ex)
       false)))
     
@@ -277,6 +300,7 @@
 (defn -ip-to-sender-handle [users ip]
   (->> users
        vals
+       (filter :sessions)
        (map (fn [param] {:user-handle (-> param :user-handle)
                          :ip-addresses (-> param
                                  :sessions

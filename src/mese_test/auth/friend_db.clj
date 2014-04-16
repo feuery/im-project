@@ -33,21 +33,26 @@
 (defn friend?
   "This function declares user1 and user2 friends even though there exists only link for user1"
   [userhandle1 userhandle2]
-  (boolean
-   (if (= userhandle1 userhandle2)
-     false
-     (loop [userhandle1 userhandle1
-            userhandle2 userhandle2
-            recurring? false]
-       (if recurring?
-         (and (contains? @Friends userhandle1)
-              (-> (get @Friends userhandle1)
-                  (in? userhandle2)))
-         (or
-          (and (contains? @Friends userhandle1)
-               (-> (get @Friends userhandle1)
-                   (in? userhandle2)))
-          (recur userhandle2 userhandle1 true)))))))
+  (println "Friend? " userhandle1 userhandle2)
+  (try
+    (boolean
+     (if (= userhandle1 userhandle2)
+       false
+       (loop [userhandle1 userhandle1
+              userhandle2 userhandle2
+              recurring? false]
+         (if recurring?
+           (and (contains? @Friends userhandle1)
+                (-> (get @Friends userhandle1)
+                    (in? userhandle2)))
+           (or
+            (and (contains? @Friends userhandle1)
+                 (-> (get @Friends userhandle1)
+                     (in? userhandle2)))
+            (recur userhandle2 userhandle1 true))))))
+    (catch NullPointerException ex
+      (println "NPE@friend?")
+      (throw ex))))
 
 
 (defn -friends-of [user-db user-handle]
