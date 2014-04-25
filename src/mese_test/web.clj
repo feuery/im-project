@@ -68,6 +68,9 @@
                {:status 403
                 :headers {"Content-Type" "text/plain; charset=utf-8"}
                 :body "{:success false}"})))
+         (catch NullPointerException ex
+           (println "Probably wrong pw")
+           (.printStackTrace ex *out*))
          (catch Exception ex
            (println ex)
            {:status 500

@@ -122,7 +122,10 @@
                                                                           :session-id session-id}})}))
             (println "delivering " session-id)
             (deliver sessionid-promise session-id))
-          (let [{sessions :sessions} (get @Users2 username)
+          (let [{sessions :sessions} (get @Users2 username) ;;sessions == nil?
+                _ (if (nil? sessions)
+                    (println "sessions nil @ user-auths!?")
+                    (println "sessions not nil @ user-auths!?"))
                 old-val (get @sessions ip)
                 new-val (assoc old-val :last-call (System/currentTimeMillis))]
             (println username " signed in again") 
@@ -140,7 +143,13 @@
         true))
     (do
       (println "Returning false")
-      (println "(user-authenticates? " (pr-str (vec (vals @Users2))) " " (pr-str username) " " (pr-str naked-password)")")
+      ;; (println "(user-authenticates? " (pr-str (vec (vals @Users2))) " " (pr-str username) " " (pr-str naked-password)")")
+
+      (try
+        (throw (Exception.))
+        (catch Exception ex
+          
+          (.printStackTrace ex *out*)))
       false)))
 
 (defn -logout! [sessionid ip users]
@@ -230,7 +239,10 @@
 
 (defn session-authenticates? [ip session-id]
   (try
-    (let [sessions (->> @Users2
+    (let [session-id (if (string? session-id)
+                       (Long/parseLong session-id)
+                       session-id)
+          sessions (->> @Users2
                         vals
                         (filter :sessions)
                         (map (comp deref :sessions))
@@ -249,6 +261,8 @@
                                           (println "NPE@relevan-atoms-filter-thingy")
                                           (throw ex)))))
           _ (println "Count of relevant-atoms: " (count relevant-atoms))
+          _ (if (= 0 (count relevant-atoms))
+              (println "ip " ip " (" (class ip)") sessid: " session-id " (" (class session-id) ")"))
           relevant-atom (first relevant-atoms) ;; Shame on you if signing twice from the same ip...
           old-val (get @relevant-atom ip)
           new-val (assoc old-val :last-call (System/currentTimeMillis))
@@ -282,7 +296,7 @@
           false)))
     (catch Exception ex
       (println "WTF²?")
-      (println ex)
+      (.printStackTrace ex *out*)
       false)))
     
 
