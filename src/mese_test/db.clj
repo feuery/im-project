@@ -4,9 +4,9 @@
             [seesaw.core :refer [input]]
             [korma.core :refer :all]))
 
-(let [pw (input "Tietokannan salasana?")]
+(let [pw (System/getenv "db_pw")]
   (def dbspec {:classname "org.postgresql.Driver"
-               :subname "//localhost:5432/yool-im"
+               :subname "//localhost:5432/copper"
                :subprotocol "postgresql"
                :user "feuer"
                :password pw})

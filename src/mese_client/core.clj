@@ -61,5 +61,5 @@
                                                                      :color (get new-prefs :color)
                                                                      :font-name (get new-prefs :font-name))))))))
 
-            (show-mainform session-id current-user main))
+            (show-mainform session-id current-user -main))
           (str "sessid-fail: " session-id))))))
