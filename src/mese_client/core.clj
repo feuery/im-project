@@ -8,12 +8,13 @@
             [mese-test.util :refer [map-to-values
                                     in?]]))
 
-(native!)
+;;Commented, because this all gets run at the server too...
+(comment (native!)
 
 ;;TODO Remove from published versions...
 
  (when (= (System/getProperty "os.name") "Linux")
-  (javax.swing.UIManager/setLookAndFeel "com.sun.java.swing.plaf.gtk.GTKLookAndFeel")) ;;Because Swing is ugly on KDE without this
+  (javax.swing.UIManager/setLookAndFeel "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"))) ;;Because Swing is ugly on KDE without this
 
 (def current-user (atom nil :validator
                         #(or (nil? %)
@@ -24,8 +25,8 @@
        (filter (partial in? (keys map2)))
        (filter #(not (= (get map1 %) (get map2 %))))))                                   
  
-;(defn -main [& argh]
-((fn main [] 
+(defn -main [& argh]
+;((fn main [] 
   (let [login-map (get-credentsials)]
     (comment     {:username username
                   :password password
@@ -61,4 +62,4 @@
                                                                      :font-name (get new-prefs :font-name))))))))
 
             (show-mainform session-id current-user main))
-          (str "sessid-fail: " session-id)))))))
+          (str "sessid-fail: " session-id))))))
