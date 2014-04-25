@@ -5,15 +5,16 @@
             [korma.core :refer :all]))
 
 (let [pw (System/getenv "db_pw")]
+  (println "the db_pw: " pw)
   (def dbspec {:classname "org.postgresql.Driver"
                :subname "//localhost:5432/copper"
                :subprotocol "postgresql"
-               :user "feuer"
+               :user "fkarefreqqplnt"
                :password pw})
 
 
   (defdb db (postgres {:db "yool-im"
-                       :user "feuer"
+                       :user "fkarefreqqplnt"
                        :password pw})))
 
 
