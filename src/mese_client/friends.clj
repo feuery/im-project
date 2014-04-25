@@ -69,6 +69,7 @@
                            underline? false
                            color "#000000"
                            font-name "arial"}}]
+  (println "Some fool is updating fonts")
   (update-myself sessid userhandle :font-preferences
                  (pr-str {:bold? bold?
                           :italic? italic?

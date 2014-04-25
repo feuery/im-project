@@ -159,12 +159,12 @@
                                                                (read-string (:font-preferences @friend)))
                                                         @friend)
                                                       @current-user-atom)
-                                                {user-name :username
-                                                 {b? :bold?
+                                                {user-name :username} usr
+                                                {b? :bold?
                                                   i? :italic?
                                                   u? :underline?
                                                   color :color
-                                                  font :font-name :as font-prefs} :font-preferences} usr
+                                                  font :font-name :as font-prefs} (get-setting :font-preferences)
                                                 size (get-setting :font-size)]
                                             
                                             (format (str "("  (:time message) ") %s says:<br/>

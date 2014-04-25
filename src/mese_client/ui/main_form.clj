@@ -122,7 +122,7 @@
                     :color (-> @current-user-atom :font-preferences :color)
                     :font-name (.getFamily font)}
           size (.getSize font)]
-      (swap! current-user-atom #(assoc % :font-preferences font-map))
+      (swap! settings #(assoc % :font-preferences font-map))
       (swap! settings assoc :font-size size))))
 
 (defn to-hex-color
