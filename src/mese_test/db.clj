@@ -20,11 +20,25 @@
     (create-map-from-uri (System/getenv "DATABASE_URL")))
    ; dev-db-info))
 
+(defn create-data-table [dbspec]
+  (println "dbspec: " dbspec)
+  (when (empty? (sql/query dbspec "SELECT * FROM pg_catalog.pg_tables WHERE tablename = 'data'"))
+    (sql/db-do-commands dbspec "CREATE TABLE data
+(
+  entity_name character varying(255) NOT NULL,
+  data text NOT NULL,
+  CONSTRAINT data_pkey PRIMARY KEY (entity_name)
+)")))
+
 (defn init []
   (let [pw (System/getenv "db_pw")] ;;This doesn't work on the heroku
     (println "the db_pw: " pw)
     (println "db_url: " (System/getenv "DATABASE_URL"))
-    (def dbspec (db-info))
+    (def dbspec (assoc (db-info)
+                  :classname "org.postgresql.Driver"
+                  :subname "//localhost:5432/dfuv70squqtkjd"
+                  :subprotocol "postgresql"
+                  :user "fkarefreqqplnt"))
     (comment {:classname "org.postgresql.Driver"
               :subname "//localhost:5432/dfuv70squqtkjd"
               :subprotocol "postgresql"
@@ -35,17 +49,8 @@
     (defdb db (postgres (db-info)))
     (comment {:db "yool-im"
               :user "fkarefreqqplnt"
-              :password pw})))
-
-
-(defn create-data-table []
-  (when (empty? (sql/query dbspec "SELECT * FROM pg_catalog.pg_tables WHERE tablename = 'data'"))
-    (sql/db-do-commands dbspec "CREATE TABLE data
-(
-  entity_name character varying(255) NOT NULL,
-  data text NOT NULL,
-  CONSTRAINT data_pkey PRIMARY KEY (entity_name)
-)")))
+              :password pw}))
+  (create-data-table dbspec))
 
 (defentity data )
 
