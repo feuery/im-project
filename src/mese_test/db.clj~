@@ -1,0 +1,21 @@
+(ns mese-test.db
+  (:require [clojure.java.jdbc :as sql]
+            [korma.db :refer :all]
+            [seesaw.core :refer [input]]
+            [korma.core :refer :all]))
+
+(def dbspec {:classname "org.postgresql.Driver"
+		   :subname "//localhost:5432/yool-im"
+		   :subprotocol "postgresql"
+		   :user "feuer"
+		   :password (input "Tietokannan salasana?")})
+
+
+(defn create-data-table []
+  (when (empty? (sql/query dbspec "SELECT * FROM pg_catalog.pg_tables WHERE tablename = 'data'"))
+    (sql/db-do-commands  "CREATE TABLE data
+(
+  entity_name character varying(255) NOT NULL,
+  data text NOT NULL,
+  CONSTRAINT data_pkey PRIMARY KEY (entity_name)
+)"))

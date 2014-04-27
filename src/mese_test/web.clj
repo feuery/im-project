@@ -302,9 +302,13 @@
          
 
 (defn -main [port]
-  (jetty/run-jetty (-> #'app wrap-params) {:port (Integer. port) :join? false}))
+  (jetty/run-jetty (-> #'app wrap-params) {:port (Integer. port) :join? false})
+  (mese-test.db/init)
+  (mese-test.auth.user-db/init)
+  (mese-test.auth.friend-db/init)
+  (mese-test.auth.request-db/init))
 
-(def server (-main 5000))
+; (def server (-main 5000))
 ;; For interactive development:
 ;; (.stop server)
 ;; (def server (-main))

@@ -15,7 +15,7 @@
                  [com.ashafa/clutch "0.4.0-RC1"]
                  [korma "0.3.0"]
                  
-                 [org.postgresql/postgresql "9.2-1002-jdbc4"]
+                 [org.postgresql/postgresql "9.2-1004-jdbc4"]
 
                  ;;Client-deps
                  [seesaw "1.4.4"]

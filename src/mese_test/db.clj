@@ -2,20 +2,40 @@
   (:require [clojure.java.jdbc :as sql]
             [korma.db :refer :all]
             [seesaw.core :refer [input]]
-            [korma.core :refer :all]))
+            [korma.core :refer :all]
+            [clojure.string :refer [split]]))
 
-(let [pw (System/getenv "db_pw")]
-  (println "the db_pw: " pw)
-  (def dbspec {:classname "org.postgresql.Driver"
-               :subname "//localhost:5432/copper"
-               :subprotocol "postgresql"
-               :user "fkarefreqqplnt"
-               :password pw})
+(defn parse-db-uri
+  [uri]
+  (drop 1 (split uri #"://|:|@|/")))
+
+(defn create-map-from-uri
+  [uri]
+  (let [parsed (parse-db-uri uri)]
+  (zipmap [:user :password :host :port :db] parsed)))
+
+(defn db-info
+  []
+  ;(if production?
+    (create-map-from-uri (System/getenv "DATABASE_URL")))
+   ; dev-db-info))
+
+(defn init []
+  (let [pw (System/getenv "db_pw")] ;;This doesn't work on the heroku
+    (println "the db_pw: " pw)
+    (println "db_url: " (System/getenv "DATABASE_URL"))
+    (def dbspec (db-info))
+    (comment {:classname "org.postgresql.Driver"
+              :subname "//localhost:5432/copper"
+              :subprotocol "postgresql"
+              :user "fkarefreqqplnt"
+              :password pw})
 
 
-  (defdb db (postgres {:db "yool-im"
-                       :user "fkarefreqqplnt"
-                       :password pw})))
+    (defdb db (postgres (db-info)))
+    (comment {:db "yool-im"
+              :user "fkarefreqqplnt"
+              :password pw})))
 
 
 (defn create-data-table []

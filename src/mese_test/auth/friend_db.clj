@@ -26,10 +26,6 @@
                                                   #{}))]
                      (assoc old user-handle (conj friend-set friend-handle))))))
 
-(let [data (de-serialize "friends")]
-  (when-not (empty? data)
-    (swap! Friends into data)))
-
 (defn friend?
   "This function declares user1 and user2 friends even though there exists only link for user1"
   [userhandle1 userhandle2]
@@ -60,3 +56,7 @@
 
 (def friends-of #(-friends-of @Users2 %))
 
+(defn init []
+  (let [data (de-serialize "friends")]
+    (when-not (empty? data)
+      (swap! Friends into data))))

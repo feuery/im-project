@@ -28,15 +28,6 @@
     (println "usr: " usr)
     (swap! Users2 assoc (:user-handle usr) usr))) ;;Let the watch take care of serializing...
 
-(when (empty? (get-users))
-  (add-user! "feuer" "Feuer" "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220/imagex100x100.jpeg" :online (sha-512 "testisalasana"))
-  (add-user! "new" "moimaailma" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana"))
-  (add-user! "thrd" "Kolmas kaveri" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana")))
-
-(doseq [[_ usr] (get-users)]
-  (get-outbox! (:user-handle usr))
-  (get-inbox! (:user-handle usr)))
-
 (defn find-user
   "Doesn't work on the Users - atom"
   [user-db user-handle]
@@ -47,8 +38,6 @@
     (catch NullPointerException ex
       (println "NPE in find-user")
       (throw ex))))
-   
-(swap! Users2 into (get-users))
 
 
 (defn find-user-real
@@ -67,6 +56,18 @@
   (swap! Users2 (fn [old]
                   (assoc old user-handle
                          (assoc user :password (:password (get old user-handle)))))))
+
+(defn init []
+  (when (empty? (get-users))
+    (add-user! "feuer" "Feuer" "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220/imagex100x100.jpeg" :online (sha-512 "testisalasana"))
+    (add-user! "new" "moimaailma" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana"))
+    (add-user! "thrd" "Kolmas kaveri" "http://prong.arkku.net/MERPG_logolmio.png" :online (sha-512 "testisalasana")))
+
+  (doseq [[_ usr] (get-users)]
+    (get-outbox! (:user-handle usr))
+    (get-inbox! (:user-handle usr)))
+
+  (swap! Users2 into (get-users)))
 
 (defn session-belongs-to-user? [user session-id]
   {:pre [(in? (keys user) :sessions)]}
