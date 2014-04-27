@@ -26,7 +26,7 @@
     (println "db_url: " (System/getenv "DATABASE_URL"))
     (def dbspec (db-info))
     (comment {:classname "org.postgresql.Driver"
-              :subname "//localhost:5432/copper"
+              :subname "//localhost:5432/dfuv70squqtkjd"
               :subprotocol "postgresql"
               :user "fkarefreqqplnt"
               :password pw})
