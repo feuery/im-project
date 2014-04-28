@@ -34,11 +34,12 @@
   (let [pw (System/getenv "db_pw")] ;;This doesn't work on the heroku
     (println "the db_pw: " pw)
     (println "db_url: " (System/getenv "DATABASE_URL"))
-    (def dbspec (assoc (db-info)
+    (def dbspec (dissoc (assoc (db-info)
                   :classname "org.postgresql.Driver"
                   :subname "//localhost:5432/dfuv70squqtkjd"
-                  :subprotocol "postgresql"
-                  :user "fkarefreqqplnt"))
+                  :subprotocol "postgresql" ;Jeejee
+                  :user "fkarefreqqplnt")
+                        :host))
     (comment {:classname "org.postgresql.Driver"
               :subname "//localhost:5432/dfuv70squqtkjd"
               :subprotocol "postgresql"
