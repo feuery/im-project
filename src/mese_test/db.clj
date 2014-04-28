@@ -16,8 +16,11 @@
 
 (defn db-info
   []
-                                        ;(if production?
-  (create-map-from-uri (System/getenv "DATABASE_URL")))
+  (let [map (create-map-from-uri (System/getenv "DATABASE_URL"))]
+    (assoc map
+      :classname "org.postgresql.Driver"
+      :subname (str "//" (:host map) "/" (:port map) "/" (:db map))
+      :subprotocol "postgresql")))
    ; dev-db-info))
 
 (defn create-data-table [dbspec]
