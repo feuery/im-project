@@ -37,7 +37,7 @@
     (def dbspec (assoc (db-info)
                   :classname "org.postgresql.Driver"
                   :subname "//localhost:5432/dfuv70squqtkjd"
-                  :subprotocol "postgresql"
+                  :subprotocol "postgresql" ;Jeejee
                   :user "fkarefreqqplnt"))
     (comment {:classname "org.postgresql.Driver"
               :subname "//localhost:5432/dfuv70squqtkjd"
