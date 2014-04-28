@@ -19,7 +19,7 @@
   (let [map (create-map-from-uri (System/getenv "DATABASE_URL"))]
     (assoc map
       :classname "org.postgresql.Driver"
-      :subname (str "//" (:host map) "/" (:port map) "/" (:db map))
+      :subname (str "//" (:host map) "/" (:db map))
       :subprotocol "postgresql")))
    ; dev-db-info))
 
