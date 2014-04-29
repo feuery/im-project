@@ -301,19 +301,20 @@
   
          
 
-(defn -main [port]
-  (println "Starting mese-thingy")
-  (mese-test.db/init)
-  (println "db/inited")
-  (mese-test.auth.user-db/init)
-  (println "user-db/inited")
-  (mese-test.auth.friend-db/init)
-  (println "friend-db inited")
-  (mese-test.auth.request-db/init)
-  (println "request-db inited")
-  (jetty/run-jetty (-> #'app wrap-params) {:port (Integer. port) :join? false})
-  (println "jetty running")
-  (println "Started mese-thingy!"))
+(defn -main [& stuff]
+  (let [port (Integer/parseInt (System/getenv "PORT"))]
+    (println "Starting mese-thingy")
+    (mese-test.db/init)
+    (println "db/inited")
+    (mese-test.auth.user-db/init)
+    (println "user-db/inited")
+    (mese-test.auth.friend-db/init)
+    (println "friend-db inited")
+    (mese-test.auth.request-db/init)
+    (println "request-db inited")
+    (jetty/run-jetty (-> #'app wrap-params) {:port (Integer. port) :join? false})
+    (println "jetty running")
+    (println "Started mese-thingy!")))
 
 ; (def server (-main 5000))
 ;; For interactive development:

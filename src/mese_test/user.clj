@@ -3,8 +3,6 @@
             
 ;            [mese-test.auth :refer [ip-to-sender-handle]]
             [clojure.pprint :refer :all]
-            [mese-client.communications :refer [server-time]]
-            [mese-client.settings :refer [get-setting]]
             [clj-time.core :as time]
             [clj-time.coerce :as tc]))
 
@@ -46,15 +44,10 @@
                  (pprint new-state))))
 
 (defn create-message [sender-id msg receiver-id]
-  {:pre [(or (in? (keys @inboxes) receiver-id)
-             (not  (get-setting :running-in-server?)))]}
+  {:pre [(in? (keys @inboxes) receiver-id)]}
   {:sender sender-id :message msg :receiver receiver-id
    :time (-> (time/now) tc/to-timestamp)
    :sent-to-sessions []})
-
-(defn create-message-client [& params]
-  (-> (apply create-message params)
-      (assoc :time (server-time))))
 
 (defn dump-outbox! [ip session-id receiver-name]
   (dosync

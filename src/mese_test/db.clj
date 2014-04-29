@@ -1,7 +1,7 @@
 (ns mese-test.db
   (:require [clojure.java.jdbc :as sql]
             [korma.db :refer :all]
-            [seesaw.core :refer [input]]
+;            [seesaw.core :refer [input]]
             [korma.core :refer :all]
             [clojure.string :refer [split]]))
 
