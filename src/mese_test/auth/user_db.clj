@@ -150,7 +150,8 @@
         (throw (Exception.))
         (catch Exception ex
           
-          (.printStackTrace ex *out*)))
+          ;; (.printStackTrace ex *out*)
+          ))
       false)))
 
 (defn -logout! [sessionid ip users]
@@ -297,7 +298,7 @@
           false)))
     (catch Exception ex
       (println "WTF²?")
-      (.printStackTrace ex *out*)
+      ;; (.printStackTrace ex *out*)
       false)))
     
 
