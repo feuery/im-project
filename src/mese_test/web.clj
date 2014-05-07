@@ -296,8 +296,9 @@
          (catch Exception ex
            (println "routes blew up")
            (println ex))))
-  (ANY "*" []
-       "Hello world! I'm online!"))
+  (ANY "*" {{} :params ip :remote-addr}
+       (str "Hello world! I'm online! <br>
+You're calling from IP " ip)))
   
          
 
