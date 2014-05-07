@@ -244,12 +244,13 @@
     (let [session-id (if (string? session-id)
                        (Long/parseLong session-id)
                        session-id)
-          sessions (->> @Users2
+          sessions (or (->> @Users2
                         vals
                         (filter :sessions)
                         (map (comp deref :sessions))
                         (reduce merge))
-          relevant-atoms (->> @Users2
+                       (println "sessions are fucked"))
+          relevant-atoms (or (->> @Users2
                              vals
                              (map :sessions)
                              (filter (complement nil?))
@@ -262,14 +263,17 @@
                                         (catch NullPointerException ex
                                           (println "NPE@relevan-atoms-filter-thingy")
                                           (throw ex)))))
+                             (println "relevant-atoms are fucked"))
           _ (println "Count of relevant-atoms: " (count relevant-atoms))
           _ (if (= 0 (count relevant-atoms))
               (println "ip " ip " (" (class ip)") sessid: " session-id " (" (class session-id) ")"))
-          relevant-atom (first relevant-atoms) ;; Shame on you if signing twice from the same ip...
-          old-val (get @relevant-atom ip)
-          new-val (assoc old-val :last-call (System/currentTimeMillis))
-          five-min-in-ms (* 60 1000)
-          ]
+          relevant-atom (or (first relevant-atoms)
+                            (println "relevant-atom is fucked"));; Shame on you if signing twice from the same ip...
+          old-val (or (get @relevant-atom ip)
+                      (println "old val is fucked"))
+          new-val (or (assoc old-val :last-call (System/currentTimeMillis))
+                      (println "new-val is fucked"))
+          five-min-in-ms (* 60 1000)]
       
       (if (and (contains? sessions ip)
                (< (- (System/currentTimeMillis)
