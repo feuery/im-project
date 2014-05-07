@@ -71,6 +71,7 @@
 
 (defn de-serialize [key]
   {:post [(not (nil? %))]}
+  (println "deserializing " key)
   (let [data (select data
                      (where {:entity_name key}))]
     (cond
