@@ -298,6 +298,7 @@
           false)))
     (catch Exception ex
       (println "WTF²?")
+      (println "class of ex: " (class ex))
       ;; (.printStackTrace ex *out*)
       false)))
     
