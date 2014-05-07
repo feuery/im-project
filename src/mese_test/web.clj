@@ -302,8 +302,7 @@
          
 
 (defn -main [port]
-  (let [port (or port
-                 (Integer/parseInt (System/getenv "PORT")))]
+  (let [port (Integer/parseInt (System/getenv "PORT"))]
     (println "Starting mese-thingy")
     (mese-test.db/init)
     (println "db/inited")
