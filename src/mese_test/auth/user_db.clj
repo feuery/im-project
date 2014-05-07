@@ -270,7 +270,10 @@
           relevant-atom (or (first relevant-atoms)
                             (println "relevant-atom is fucked"));; Shame on you if signing twice from the same ip...
           old-val (or (get @relevant-atom ip)
-                      (println "old val is fucked"))
+                      (do
+                        (println "old val is fucked")
+                        (println "relevant-atom: " @relevant-atom)
+                        (println "/relevant-atom")))
           new-val (or (assoc old-val :last-call (System/currentTimeMillis))
                       (println "new-val is fucked"))
           five-min-in-ms (* 60 1000)]
