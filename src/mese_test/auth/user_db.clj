@@ -273,6 +273,7 @@
                       (do
                         (println "old val is fucked")
                         (println "relevant-atom: " @relevant-atom)
+                        (println "its class " (class @relevant-atom))
                         (println "/relevant-atom")))
           new-val (or (assoc old-val :last-call (System/currentTimeMillis))
                       (println "new-val is fucked"))
