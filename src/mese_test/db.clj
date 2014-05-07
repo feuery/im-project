@@ -19,7 +19,7 @@
   (let [map (create-map-from-uri (System/getenv "DATABASE_URL"))]
     (assoc map
       :classname "org.postgresql.Driver"
-      :subname (str "//" (:host map) "/" (:db map))
+      :subname (str "//" (:host map) "/" (:db map) "?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory")
       :subprotocol "postgresql")))
    ; dev-db-info))
 
@@ -70,6 +70,7 @@
               (where {:entity_name key})))))
 
 (defn de-serialize [key]
+  {:post [(not (nil? %))]}
   (let [data (select data
                      (where {:entity_name key}))]
     (cond

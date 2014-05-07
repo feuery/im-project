@@ -47,7 +47,7 @@
   {:pre [(in? (keys @inboxes) receiver-id)]}
   {:sender sender-id :message msg :receiver receiver-id
    :time (-> (time/now) tc/to-timestamp)
-   :sent-to-sessions []})
+   :sent-to-sessions []}) ;;Remember that this sucker exists in the client side code too
 
 (defn dump-outbox! [ip session-id receiver-name]
   (dosync
