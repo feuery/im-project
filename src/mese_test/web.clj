@@ -42,16 +42,15 @@
 
 (defroutes app
   (POST "/hello-world"
-        {{message "message"} :params
-         ip :remote-addr}
+        {{message "message" ip "ip"}}
         (format "%s said: %s" ip message))
   (GET "/get-inbox/:user/:computer-id" [user computer-id]
        (println "Hello world!")
        {:status 200
         :headers {"Content-Type" "text/html; charset=utf-8"}
         :body (format "Hello %s from <h3 style=\"color: #FF0000;\">%s</h3>" user computer-id)})
-  (GET "/login/:username/:password"
-       {{username :username password :password} :params ip :remote-addr}
+  (GET "/login/:username/:password/:ip"
+       [username password ip]
        (try
          (println "ip " ip)
          (let [sessionid (promise)]
@@ -76,8 +75,8 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"})))
-  (GET "/friend-request/:session-id/:friend-handle"
-       {{session-id :session-id friend-handle :friend-handle} :params ip :remote-addr}
+  (GET "/friend-request/:session-id/:friend-handle/:ip"
+       [session-id friend-handle ip]
        (try
          (println "Beginning /friend-request/")
          (let [session-id (Long/parseLong session-id)]
@@ -99,8 +98,8 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"})))
-  (GET "/friend-requests/:session-id"
-       {{session-id :session-id} :params ip :remote-addr}
+  (GET "/friend-requests/:session-id/:ip"
+       [session-id ip]
        (if (session-authenticates? ip session-id)
          (let [userhandle (sessionid->userhandle (Long/parseLong session-id))]
            (println "returning requests of " userhandle)
@@ -115,9 +114,8 @@
          {:status 403
           :headers {"Content-Type" "text/plain; charset=utf-8"}
           :body "{:success false}"}))
-  (GET "/accept-request/:session-id/:requester-handle"
-       {{session-id :session-id requester-handle :requester-handle} :params
-        ip :remote-addr}
+  (GET "/accept-request/:session-id/:requester-handle/:ip"
+       [session-id requester-handle ip]
        (if (session-authenticates? ip session-id)
          (let [current-user (sessionid->userhandle (Long/parseLong session-id))
                requests (filter (complement :accepted?)
@@ -139,8 +137,8 @@
           :body "{:success false ;2
 }"}))
        
-  (GET "/logout/:session-id/"
-       {{session-id :session-id} :params ip :remote-addr}
+  (GET "/logout/:session-id/:ip/"
+       [session-id ip]
        (try
          (if (session-authenticates? ip session-id)
            {:status 200
@@ -154,11 +152,12 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"})))
-  (POST "/update-myself/:session-id/:user-handle/"
+  (POST "/update-myself/:session-id/:user-handle/:ip/"
         {{session-id :session-id
           user-handle :user-handle
+          ip :ip
           property "property"
-          new-value "new-value"} :params ip :remote-addr}
+          new-value "new-value"} :params}
         (try
           (println "[serverside:] Swapping " user-handle "'s " property " to " new-value)
           (if (session-authenticates? ip session-id)
@@ -207,9 +206,8 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"})))
-  (GET "/list-friends/:session-id"
-       {{session-id :session-id} :params
-        ip :remote-addr}
+  (GET "/list-friends/:session-id/:ip"
+       [session-id ip]
        (try
          (let [session-id (Long/parseLong session-id)]
            (println "Listing friends for " session-id ", " ip)           
@@ -239,11 +237,11 @@
            {:status 500
             :headers {"Content-Type" "text/plain; charset=utf-8"}
             :body "{:success false } ; Infernal server error - admin is notified"}))) ;;If you want to exclude yourself, please do it in the client-side
-  (POST "/send-msg/:session-id/receiver-handle/:receiver-handle"
+  (POST "/send-msg/:session-id/receiver-handle/:receiver-handle/:ip"
         {{receiver-handle :receiver-handle
           session-id :session-id
-          message "message"} :params
-          ip :remote-addr}
+          ip :ip
+          message "message"} :params}
         (println "Tä? msg: " message ", receiver " receiver-handle)
         (try
           ; (println session-id "/" (sessionid->userhandle session-id) " sending to " receiver-handle)
@@ -277,9 +275,8 @@
         :headers {"Content-Type" "text/plain; charset=utf-8"}
         :body (pr-str (-> (time/now) tc/to-timestamp))})
         
-  (GET "/inbox/:session-id/"
-       {{session-id :session-id} :params
-        ip :remote-addr}
+  (GET "/inbox/:session-id/:ip/"
+       [session-id ip]
        (println "IP: " ip "; session-id " session-id)
        (try
          (let [receiver (ip-to-sender-handle ip)]
