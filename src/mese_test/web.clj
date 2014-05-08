@@ -42,7 +42,7 @@
 
 (defroutes app
   (POST "/hello-world"
-        {{message "message" ip "ip"}}
+        {{message "message" ip "ip"} :params}
         (format "%s said: %s" ip message))
   (GET "/get-inbox/:user/:computer-id" [user computer-id]
        (println "Hello world!")
