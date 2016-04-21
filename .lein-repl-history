@@ -1,1 +1,6 @@
-22
+(use 'figwheel-sidecar.repl-api)
+(start-figwheel!)
+(quit)
+(use 'figwheel-sidecar.repl-api)
+(start-figwheel!)
+(cljs-repl)
