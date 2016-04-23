@@ -6,6 +6,7 @@
               [re-frame.core :refer [subscribe]]
               
               [improject.state :as state]
+              [improject.handlers :as handlers]
               [improject.login :refer [login-view]]))
 
 ;; -------------------------

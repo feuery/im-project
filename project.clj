@@ -21,6 +21,7 @@
                  [venantius/accountant "0.1.7"
                   :exclusions [org.clojure/tools.reader]]
                  [re-frame "0.7.0"]
+                 [cljs-ajax "0.5.4"]
 
                  [org.postgresql/postgresql "9.4.1208.jre7"]
                  [org.clojure/java.jdbc "0.5.8"]

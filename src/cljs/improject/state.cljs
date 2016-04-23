@@ -17,6 +17,7 @@
 ;; (def username (reaction (:username @data)))
 ;; (def inbox (reaction (:inbox @data)))
 
+
 (register-sub :sessionid
               (fn [db [sid & _]]
                 (assert (= sid :sessionid))
@@ -26,4 +27,10 @@
               (fn [db [sid & _]]
                 (assert (= sid :username))
                 (reaction (get-in @db [:username]))))
-                   
+
+(register-sub :no-users
+              (fn [db _]
+                (reaction (get-in @db [:no-users]))))
+
+
+                
