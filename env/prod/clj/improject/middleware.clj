@@ -1,5 +1,5 @@
 (ns improject.middleware
-  (:require [ring.middleware.defaults :refer [site-defaults wrap-defaults]]))
+  (:require [ring.middleware.defaults :refer [api-defaults site-defaults wrap-defaults]]))
 
 (defn wrap-middleware [handler]
-  (wrap-defaults handler site-defaults))
+  (wrap-defaults handler api-defaults))

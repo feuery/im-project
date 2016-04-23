@@ -1,6 +1,6 @@
 (ns improject.registerationform
-  (:require-macros [improject.macros :refer [handler-fn]])
-  (:require [reagent.core :as r]))
+  (:require [reagent.core :as r]
+            [re-frame.core :refer [dispatch]]))
 
 (defn value-of [event]
   (-> event .-target .-value))
@@ -25,7 +25,7 @@
          [:td "Username " [:br] "(will be used for logging in. Can't be changed): "]
          [:td
           [:input#username {:type "text"
-                            :maxlength 255
+                            :maxLength 255
                             :on-change #(swap! viewstate assoc :username (value-of %))}]]]
         [:tr
          [:td "Password: "] [:td
@@ -35,12 +35,12 @@
         [:tr
          [:td "Personal message: "] [:td
                                      [:textarea#persmsg
-                                      {:maxlength 2000
+                                      {:maxLength 2000
                                        :on-change #(swap! viewstate assoc :persmsg (value-of %))}]]]
         [:tr
          [:td "Displayname (will be shown to others. Can be changed): "]
          [:td
-          [:input#displayname {:type "text" :maxlength 255
+          [:input#displayname {:type "text" :maxLength 255
                                :on-change #(swap! viewstate assoc :displayname (value-of %))}]]]
         [:tr
          [:td "Font: "]
@@ -65,5 +65,5 @@
           [:input#colour {:type "color"
                           :on-change #(swap! viewstate assoc :font-colour (value-of %))}]]]]
        ;; [:div "Value of viewstate?" [:br] (with-out-str (cljs.pprint/pprint @viewstate))]
-       [:button {:on-click #(js/alert "lol")} "Register"]])))
+       [:button {:on-click #(dispatch [:register-user @viewstate])} "Register"]])))
                                  

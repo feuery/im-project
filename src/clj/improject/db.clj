@@ -57,5 +57,6 @@
                        :password "popsadsadko"
                        :img_location "http://3.bp.blogspot.com/_z3wgxCQrDJY/S6CgYhXSkyI/AAAAAAAAAAg/0Vv0ffa871g/S220-s80/imagex100x100.jpeg"
                        :personal_message "Voikukkia ei voi syödä"
+                       :admin true
                        :font_id 1}))
   (k/delete users))

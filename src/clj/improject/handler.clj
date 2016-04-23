@@ -1,11 +1,13 @@
 (ns improject.handler
-  (:require [compojure.core :refer [GET defroutes]]
+  (:require [compojure.core :refer [POST GET defroutes]]
             [figwheel-sidecar.repl-api :as s]
             [compojure.route :refer [not-found resources]]
             [hiccup.page :refer [include-js include-css html5]]
             [improject.middleware :refer [wrap-middleware]]
             [config.core :refer [env]]
             [korma.core :refer [select]]
+            [clojure.edn :refer [read-string]]
+            [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
 
             [improject.db :refer [users]]))
 
@@ -37,6 +39,13 @@
           :body (if (empty? users)
                   "true"
                   "false")}))
+
+  (POST "/register-user"
+        {{edn :edn} :params}
+        (let [obj (read-string edn)]
+          (html5
+           [:body
+            [:p "Got back " (prn-str obj)]])))
   
   (resources "/")
   (not-found "Not Found"))
