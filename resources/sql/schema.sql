@@ -1,8 +1,9 @@
-CREATE OR REPLACE FUNCTION column_exists(tablename varchar(255), column_name varchar(255)) RETURNS boolean AS $$
+
+CREATE OR REPLACE FUNCTION column_exists(tablename varchar(255), column_name_ varchar(255)) RETURNS boolean AS $$
 BEGIN
 return EXISTS(SELECT table_name, column_name
               FROM  information_schema.columns
-	      WHERE table_name = tolower(tablename) AND column_name=tolower(column_name));
+	      WHERE table_name = lower(tablename) AND column_name=lower(column_name_));
 END
  $$ LANGUAGE plpgsql;
 
@@ -30,6 +31,10 @@ CREATE TABLE IF NOT EXISTS Users (
        font_id INT,
        FOREIGN KEY (font_id) REFERENCES Font_Preference(ID));
 
+IF NOT column_exists('Users', 'admin') THEN
+   ALTER TABLE Users
+   	 ADD admin BOOLEAN NOT NULL DEFAULT FALSE;
+END IF;
 
 CREATE TABLE IF NOT EXISTS Friendship (
        username1 VARCHAR(255) NOT NULL,
