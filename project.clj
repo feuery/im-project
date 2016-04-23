@@ -20,7 +20,12 @@
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"
                   :exclusions [org.clojure/tools.reader]]
-                 [re-frame "0.7.0"]]
+                 [re-frame "0.7.0"]
+
+                 [org.postgresql/postgresql "9.4.1208.jre7"]
+                 [org.clojure/java.jdbc "0.5.8"]
+                 
+                 [korma "0.3.0"]]
 
   :plugins [[lein-environ "1.0.2"]
             [lein-cljsbuild "1.1.1"]
