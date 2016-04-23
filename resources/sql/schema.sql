@@ -36,6 +36,11 @@ IF NOT column_exists('Users', 'admin') THEN
    	 ADD admin BOOLEAN NOT NULL DEFAULT FALSE;
 END IF;
 
+IF NOT column_exists('Users', 'can_login') THEN
+   ALTER TABLE Users
+   	 ADD can_login BOOLEAN NOT NULL DEFAULT FALSE;
+END IF;
+
 CREATE TABLE IF NOT EXISTS Friendship (
        username1 VARCHAR(255) NOT NULL,
        username2 VARCHAR(255) NOT NULL,
