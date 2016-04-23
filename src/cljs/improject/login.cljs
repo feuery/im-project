@@ -6,10 +6,14 @@
                                    register-sub
                                    dispatch
                                    dispatch-sync
-                                   subscribe]]))
+                                   subscribe]]
+            [improject.registerationform :refer [registeration-form]]))
 
 (defn register-initial []
-  [:div "Registering initial user"])
+  [:div
+   [:h2 "Welcome"]
+   [:p "It seems there are no registered users at all. Let's create one. You'll be the admin who has the power to allow new users to login. First, though, I need some information:"]
+   [registeration-form]])
 
 (defn login-view []
   (dispatch [:no-users?])
