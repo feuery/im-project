@@ -4,7 +4,10 @@
             [compojure.route :refer [not-found resources]]
             [hiccup.page :refer [include-js include-css html5]]
             [improject.middleware :refer [wrap-middleware]]
-            [config.core :refer [env]]))
+            [config.core :refer [env]]
+            [korma.core :refer [select]]
+
+            [improject.db :refer [users]]))
 
 (def mount-target
   [:div#app
@@ -24,25 +27,16 @@
      mount-target
      (include-js "/js/app.js")]))
 
-;; (when (env :roland false)
-;;   ;; (def figwheel-config
-;;   ;;   {:figwheel-options {} ;; <-- figwheel server config goes here 
-;;   ;;    :build-ids ["dev"]   ;; <-- a vector of build ids to start autobuilding
-;;   ;;    :all-builds          ;; <-- supply your build configs here
-;;   ;;    [{:id "dev"
-;;   ;;      :figwheel true
-;;   ;;      :source-paths ["cljs-src"]
-;;   ;;      :compiler {:main "repler.core"
-;;   ;;                 :asset-path "js/out"
-;;   ;;                 :output-to "resources/public/js/repler.js"
-;;   ;;                 :output-dir "resources/public/js/out" }}]})
-;;   (s/start-figwheel! ;; figwheel-config
-;;                      )
-;;   )
-
 (defroutes routes
   (GET "/" [] loading-page)
   (GET "/about" [] loading-page)
+  (GET "/no-users" []
+       (let [users (select users)]
+         {:status 200
+          :headers {"Content-Type" "text/plain"}
+          :body (if (empty? users)
+                  "true"
+                  "false")}))
   
   (resources "/")
   (not-found "Not Found"))
