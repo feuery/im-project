@@ -24,8 +24,12 @@
 (register-handler
  :bad-result
  (fn [db [_ response]]
-   (js/alert response)
-   db))
+   (if (= response "Timeout")
+     (assoc db :sessionid -1
+            :username "")
+     (do 
+       (js/alert response)
+       db))))
 
 (register-handler
  :register-user
