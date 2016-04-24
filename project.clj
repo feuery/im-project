@@ -23,9 +23,10 @@
                  [re-frame "0.7.0"]
                  [cljs-ajax "0.5.4"]
 
+                 [prismatic/schema "1.1.0"]
+
                  [org.postgresql/postgresql "9.4.1208.jre7"]
-                 [org.clojure/java.jdbc "0.5.8"]
-                 
+                 [org.clojure/java.jdbc "0.5.8"]                 
                  [korma "0.3.0"]]
 
   :plugins [[lein-environ "1.0.2"]

@@ -14,9 +14,10 @@
 (register-handler
  :user-count-status
  (fn [db [_ response]]
-    (assoc db :no-users (case response
-                          "true" true
-                          false))))
+   ;; (js/alert response)
+   (assoc db :no-users (case response
+                         "true" true
+                         false))))
 
 (register-handler
  :bad-result
@@ -36,4 +37,5 @@
 
 (register-handler :registered
                   (fn [db [_ result]]
-                    (js/alert result)))
+                    (js/alert result)
+                    db))

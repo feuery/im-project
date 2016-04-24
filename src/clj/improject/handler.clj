@@ -5,12 +5,15 @@
             [hiccup.page :refer [include-js include-css html5]]
             [improject.middleware :refer [wrap-middleware]]
             [config.core :refer [env]]
-            [korma.core :refer [select]]
+            [korma.core :as k]
             [clojure.edn :refer [read-string]]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [clojure.pprint :refer [pprint]]
+            [schema.core :as schemas]
 
-            [improject.db :refer [users]]))
+            [improject.db :refer [users]]
+            [improject.schemas :refer [user-schema]]
+            [improject.serialization :refer [save-user!]]))
 
 (def mount-target
   [:div#app
@@ -30,23 +33,36 @@
      mount-target
      (include-js "/js/app.js")]))
 
+(defmacro with-validation [[obj form schema] & forms]
+  `(try
+     (let [~obj (schemas/validate ~schema ~form)]
+       ~@forms)
+     (catch Exception ex#
+       (pprint ex#)
+       {:status 500
+        :body "Infernal Server Error"})))
+
 (defroutes routes
   (GET "/" [] loading-page)
   (GET "/about" [] loading-page)
   (GET "/no-users" []
-       (let [users (select users)]
+       (let [users (k/select users)]
          {:status 200
           :headers {"Content-Type" "text/plain"}
           :body (if (empty? users)
                   "true"
                   "false")}))
 
-  (POST "/register-user" {{edn :edn} :params}
-        
-        (let [obj (read-string edn)]
-          (html5
-           [:body
-            [:p "Got back " (prn-str obj)]])))
+  (POST "/register-user" {{edn :edn} :params}        
+        (with-validation [{username :username
+                           :as user} (read-string edn) user-schema]
+          (let [interesting-users (k/select users
+                                            (k/where {:username username}))]
+            (if (empty? interesting-users)
+              (do
+                (save-user! user)
+                {:status 200})
+              (throw (Exception. (str "User " username " exists already")))))))
   
   (resources "/")
   (not-found "Not Found"))

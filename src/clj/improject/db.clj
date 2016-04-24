@@ -59,4 +59,11 @@
                        :personal_message "Voikukkia ei voi syödä"
                        :admin true
                        :font_id 1}))
-  (k/delete users))
+  (k/delete users)
+
+  (k/select users)
+
+  (k/select font_preference)
+
+  (k/insert font_preference
+            (k/values {:bold true})))
