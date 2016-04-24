@@ -28,8 +28,8 @@
  :register-user
  (fn [db [_ user-val]]
    (POST "/register-user"
-         {:params (prn-str user-val)
-
+         {:params {:edn (prn-str user-val)}
+          :format :url
           :handler #(dispatch [:registered %])
           :error-handler #(dispatch [:bad-result %1])})
    db))
