@@ -1,7 +1,9 @@
 (ns improject.handlers
   (:require [re-frame.core :refer [register-handler
                                    dispatch]]
-            [ajax.core :refer [GET POST]]))
+            [reagent.session :as session]
+            [ajax.core :refer [GET POST]]
+            [cljs.reader :refer [read-string]]))
 
 (register-handler
  :no-users?
@@ -37,5 +39,10 @@
 
 (register-handler :registered
                   (fn [db [_ result]]
-                    (js/alert result)
-                    db))
+                    (if (= result "true")
+                      (do
+                        (.log js/console "success")
+                        (assoc db :no-users false))
+                      (do
+                        (.log js/console (str "Result " result))
+                        db))))

@@ -13,7 +13,8 @@
 
             [improject.db :refer [users]]
             [improject.schemas :refer [user-schema]]
-            [improject.serialization :refer [save-user!]]))
+            [improject.serialization :refer [save-user!]]
+            [improject.security :refer [sha-512]]))
 
 (def mount-target
   [:div#app
@@ -55,13 +56,19 @@
 
   (POST "/register-user" {{edn :edn} :params}        
         (with-validation [{username :username
-                           :as user} (read-string edn) user-schema]
+                           :as user} ;;destructuring
+                          (-> edn
+                              read-string
+                              (update-in [:password] sha-512)) ;;parsing the incoming edn
+                          user-schema ;;schema
+                          ]
           (let [interesting-users (k/select users
                                             (k/where {:username username}))]
             (if (empty? interesting-users)
               (do
-                (save-user! user)
-                {:status 200})
+                (save-user! (assoc user :can_login true :admin true))
+                {:status 200
+                 :body "true"})
               (throw (Exception. (str "User " username " exists already")))))))
   
   (resources "/")
