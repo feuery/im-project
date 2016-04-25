@@ -27,8 +27,7 @@
  :bad-result
  (fn [db [_ response]]
    (if (= response "Timeout")
-     (assoc db :sessionid -1
-            :username "")
+     (dispatch [:reset-location])
      (do 
        (js/alert response)
        db))))
@@ -66,7 +65,7 @@
 (register-handler :loggedin
                   (fn [db [_ result]]
                     (if (= result "success")
-                      (assoc db :sessionid 1)
+                      (assoc db :location :main) 
                       (do
                         (.log js/console "Login failed")
                         db))))
@@ -74,11 +73,13 @@
 (register-handler :reset-location
                   (fn [db _]
                     ;; (set-url "/login")  
-                    (assoc db :location :login)))
+                    (assoc db :location :login)
+                    ))
 
 (register-handler :register
                   (fn [db _]
-                    ;; (set-url "/register")   
+                    ;; (set-url "/register")
+                    (.log js/console ":register handled")
                     (assoc db :location :register)))
 
 (.log js/console "improject.handlers loaded")

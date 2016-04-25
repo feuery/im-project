@@ -8,20 +8,13 @@
                                    dispatch-sync
                                    subscribe]]))
 
-(def data (r/atom {:sessionid -1
-                   :username ""
+(def data (r/atom {:username ""
                    :outbox []
                    :inbox []}))
 
-;; (def sessionid (reaction (:sessionid @data)))
 ;; (def username (reaction (:username @data)))
 ;; (def inbox (reaction (:inbox @data)))
 
-
-(register-sub :sessionid
-              (fn [db [sid & _]]
-                (assert (= sid :sessionid))
-                (reaction (get-in @db [:sessionid]))))
 
 (register-sub :username
               (fn [db [sid & _]]
@@ -32,8 +25,6 @@
               (fn [db _]
                 (reaction (get-in @db [:no-users]))))
 
-
-                
 (register-sub :location
               (fn [db _]
                 (reaction (get-in @db [:location])))) 
