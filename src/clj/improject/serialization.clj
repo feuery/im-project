@@ -30,7 +30,8 @@
              (k/where (= :username username)))
    first
    :friendship
-   (map :username2)))
+   (map :username2)
+   vec))
 
 (defn in? [seq val]
   (some (partial = val) seq ))

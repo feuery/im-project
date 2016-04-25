@@ -13,7 +13,7 @@
 
             [improject.db :refer [users]]
             [improject.schemas :refer [user-schema login-schema]]
-            [improject.serialization :refer [save-user!]]
+            [improject.serialization :refer [save-user! get-friends-of!]]
             [improject.security :refer [sha-512]]))
 
 (def mount-target
@@ -34,14 +34,16 @@
      mount-target
      (include-js "/js/app.js")]))
 
+(def infernal-error {:status 500
+                     :body "Infernal Server Error"})
+
 (defmacro with-validation [[obj form schema] & forms]
   `(try
      (let [~obj (schemas/validate ~schema ~form)]
        ~@forms)
      (catch Exception ex#
        (pprint ex#)
-       {:status 500
-        :body "Infernal Server Error"})))
+       infernal-error)))
 
 (defroutes routes
   (GET "/" [] loading-page)
@@ -54,7 +56,20 @@
                   "true"
                   "false")}))
 
-  (POST "/login" {{edn :edn} :params}
+  (GET "/friends-of/:user"
+       {{user :user} :params
+        {username :username :as session} :session}
+
+       (if (= user username)
+         {:status 200
+          :headers {"Content-Type" "text/plain"}
+          :body (pr-str (get-friends-of! user))}
+         infernal-error))
+
+  (POST "/login" {{edn :edn} :params
+                  session :session}
+        (println "Session: ")
+        (pprint session)
         (with-validation [login-model
                           (-> edn read-string (update-in [:password] sha-512))
                           login-schema]
@@ -65,6 +80,7 @@
                 (print "Logged in")
                 (pprint (first users))
                 {:status 200
+                 :session (assoc session :username (:username login-model))
                  :body "success"})
               (do
                 (println  "Logging in for " (:username login-model) " failed. These users found: ")
