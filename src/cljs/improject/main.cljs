@@ -12,8 +12,9 @@
    [:div.friend-img
     [:img {:src (:img_location friend)
            :alt (str "Image of " (:displayname friend))}]]
+   [:div
    [:h2.friend-name (:displayname friend)]
-   [:p.personal-message (:personal_message friend)]])
+   [:p.personal-message (:personal_message friend)]]])
 
 (defn main-view []
   (let [friend-list (subscribe [:friend-list])]
@@ -23,4 +24,8 @@
                         vec
                         (into [:div#friend-list]))]
         (.log js/console (str toret))
-        toret))))
+        [:div
+         [:div.friend-cell.own
+          [:h2 "Who am I?"]]
+         
+         toret]))))

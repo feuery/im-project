@@ -70,3 +70,22 @@ input {
     right: 0px;
     bottom: 0px;  
 }
+
+.personal-message {
+    text-align: center;
+}
+
+.friend-cell {
+    border: #aaaaaa 2px solid;
+    background-color: #A0A0A0;
+}
+
+.friend-cell:hover {
+    background-color: #A00000;
+}
+
+.friend-cell.own:hover {
+    background-color: #A0A0A0;
+}
+
+    
