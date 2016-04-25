@@ -3,7 +3,9 @@
                                    dispatch]]
             [reagent.session :as session]
             [ajax.core :refer [GET POST]]
-            [cljs.reader :refer [read-string]]))
+            [cljs.reader :refer [read-string]]
+
+            [improject.formtools :refer [set-url]]))
 
 (register-handler
  :no-users?
@@ -45,8 +47,9 @@
                   (fn [db [_ result]]
                     (if (= result "true")
                       (do
-                        (.log js/console "success")
-                        (assoc db :no-users false))
+                        (js/alert "Registration succeeded. You'll be redirected to the login page")
+                        (assoc db :no-users false
+                               :location :login))
                       (do
                         (.log js/console (str "Result " result))
                         db))))
@@ -69,11 +72,12 @@
                         db))))
 
 (register-handler :reset-location
-                  (fn [db _] 
+                  (fn [db _]
+                    ;; (set-url "/login")  
                     (assoc db :location :login)))
 
 (register-handler :register
                   (fn [db _]
-                    (-> (.-history js/window) (.pushState {} "Registering" "/register"))
+                    ;; (set-url "/register")   
                     (assoc db :location :register)))
                     

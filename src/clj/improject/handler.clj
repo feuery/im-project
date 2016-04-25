@@ -82,10 +82,16 @@
                           user-schema ;;schema
                           ]
           (let [interesting-users (k/select users
-                                            (k/where {:username username}))]
+                                            (k/where {:username username}))
+                initial-registration? (if (empty? interesting-users)
+                                        (empty? (k/select users))
+                                        false)]
             (if (empty? interesting-users)
               (do
-                (save-user! (assoc user :can_login true :admin true))
+                (save-user!
+                 (if initial-registration?
+                   (assoc user :can_login true :admin true)
+                   user))
                 {:status 200
                  :body "true"})
               (throw (Exception. (str "User " username " exists already")))))))

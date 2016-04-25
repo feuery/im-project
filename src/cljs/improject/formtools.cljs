@@ -8,3 +8,6 @@
 
 (defn return-clicked? [e]
   (= (.-which e) 13))
+
+(defn set-url [url]
+  (-> (.-history js/window) (.pushState {} "" url)))

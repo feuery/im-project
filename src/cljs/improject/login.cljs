@@ -49,7 +49,7 @@
           [:div.column-three
            ;; [:p "Status of @no-users: " (if @no-users "true" "false")]
            ;; [:p "Viewmodel: " (str @login-viewmodel)] 
-           [:a {:href "#"
+           [:button {
                 :on-click #(dispatch [:register])} "Register"]
            [:button#loginbtn
             {:on-click #(login! @login-viewmodel)}
