@@ -12,3 +12,6 @@
                   :displayname s/Str
                   :img_location s/Str})
 
+(def login-schema {:username s/Str
+                   :password s/Str})
+

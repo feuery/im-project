@@ -12,7 +12,7 @@
             [schema.core :as schemas]
 
             [improject.db :refer [users]]
-            [improject.schemas :refer [user-schema]]
+            [improject.schemas :refer [user-schema login-schema]]
             [improject.serialization :refer [save-user!]]
             [improject.security :refer [sha-512]]))
 
@@ -53,6 +53,25 @@
           :body (if (empty? users)
                   "true"
                   "false")}))
+
+  (POST "/login" {{edn :edn} :params}
+        (with-validation [login-model
+                          (-> edn read-string (update-in [:password] sha-512))
+                          login-schema]
+          (let [users (k/select users
+                                (k/where login-model))]
+            (if (= (count users) 1)
+              (do
+                (print "Logged in")
+                (pprint (first users))
+                {:status 200
+                 :body "success"})
+              (do
+                (println  "Logging in for " (:username login-model) " failed. These users found: ")
+                (pprint users)
+                {:status 200
+                 :body "failure"})))))
+                 
 
   (POST "/register-user" {{edn :edn} :params}        
         (with-validation [{username :username

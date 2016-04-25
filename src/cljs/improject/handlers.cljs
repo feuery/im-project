@@ -50,3 +50,20 @@
                       (do
                         (.log js/console (str "Result " result))
                         db))))
+
+(register-handler :login
+                  (fn [db [_ login-vm]]
+                    (POST "/login"
+                          {:params {:edn (prn-str login-vm)}
+                           :format :url
+                           :handler #(dispatch [:loggedin %])
+                           :error-handler #(dispatch [:bad-result %])})
+                    db))
+
+(register-handler :loggedin
+                  (fn [db [_ result]]
+                    (if (= result "success")
+                      (assoc db :sessionid 1)
+                      (do
+                        (.log js/console "Login failed")
+                        db))))

@@ -1,12 +1,7 @@
 (ns improject.registerationform
   (:require [reagent.core :as r]
-            [re-frame.core :refer [dispatch]]))
-
-(defn value-of [event]
-  (-> event .-target .-value))
-
-(defn value-of-checkbox [event]
-  (-> event .-target .-checked))
+            [re-frame.core :refer [dispatch]]
+            [improject.formtools :refer [value-of value-of-checkbox]]))
 
 (defn registeration-form []
   (let [viewstate (r/atom {:personal_message ""
