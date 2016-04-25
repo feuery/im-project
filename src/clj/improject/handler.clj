@@ -35,6 +35,7 @@
      (include-js "/js/app.js")]))
 
 (def infernal-error {:status 500
+                     :headers {"Content-Type" "text/plain"}
                      :body "Infernal Server Error"})
 
 (defmacro with-validation [[obj form schema] & forms]
