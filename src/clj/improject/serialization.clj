@@ -22,3 +22,31 @@
          (reset! font-id (:id (first fonts)))))
      (k/insert db/users
                (k/values (assoc user :font_id @font-id))))))
+
+(defn get-friends-of! [username]
+  (->>
+   (k/select db/users
+             (k/with db/friendship)
+             (k/where (= :username username)))
+   first
+   :friendship
+   (map :username2)))
+
+(defn in? [seq val]
+  (some (partial = val) seq ))
+
+(defn friends? [username1 username2]
+  (let [user1-friends (get-friends-of! username1)
+        user2-friends (get-friends-of! username2)]
+    (or (in? user1-friends username2)
+        (in? user2-friends username1))))
+
+(defn make-friends! [username1 username2]
+  (if (= 2
+         (count 
+          (k/select db/users
+                    (k/where (or (= :username username1)
+                                 (= :username username2))))))
+    (if-not (friends? username1 username2)
+      (k/insert db/friendship
+                (k/values {:username1 username1 :username2 username2})))))

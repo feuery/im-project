@@ -46,9 +46,13 @@
 (k/defentity font_preference
   (k/pk :id))
 
+(k/defentity friendship)
+
 (k/defentity users
   (k/pk :username)
-  (k/belongs-to font_preference {:fk :font_id})) ;; I disagree with how korma's has-one/belongs-to works, but whatever
+  (k/belongs-to font_preference {:fk :font_id})
+  (k/has-many friendship {:fk :username1})) ;; I disagree with how korma's has-one/belongs-to works, but whatever
+
   
 (comment
   (k/insert users
@@ -64,6 +68,12 @@
   (k/select users)
 
   (k/select font_preference)
+
+  (k/select friendship)
+
+  (pprint (k/select users
+                    (k/with friendship)
+                    (k/with font_preference)))
 
   (k/insert font_preference
             (k/values {:bold true})))
