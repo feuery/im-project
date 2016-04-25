@@ -31,6 +31,10 @@
    first
    :friendship
    (map :username2)
+   (map (fn [username]
+          (k/select db/users
+                    (k/where (= :username username)))))
+   flatten
    vec))
 
 (defn in? [seq val]

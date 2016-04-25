@@ -60,12 +60,14 @@
                            :format :url
                            :handler #(dispatch [:loggedin %])
                            :error-handler #(dispatch [:bad-result %])})
-                    db))
+                    (assoc db :username (:username login-vm))))
 
 (register-handler :loggedin
                   (fn [db [_ result]]
                     (if (= result "success")
-                      (assoc db :location :main)
+                      (do
+                        (dispatch [:find-friends])
+                        (assoc db :location :main))
                       (do
                         (.log js/console "Login failed")
                         db))))
@@ -82,5 +84,17 @@
                     ;; (set-url "/register")
                     (.log js/console ":register handled")
                     (assoc db :location :register)))
+
+(register-handler :find-friends
+                  (fn [db _]
+                    (GET (str "/friends-of/" (:username db))
+                         {:error-handler #(dispatch [:bad-result %])
+                          :handler #(dispatch [:friends-found %])})
+                    db))
+
+(register-handler :friends-found
+                  (fn [db [_ friends-result]]
+                    (let [friend-list (or (read-string friends-result) [])]
+                      (assoc db :friend-list friend-list))))
 
 (.log js/console "improject.handlers loaded")

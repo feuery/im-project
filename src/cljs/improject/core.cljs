@@ -8,7 +8,8 @@
               [improject.state :refer [data]]
               [improject.handlers :as handlers]
               [improject.login :refer [login-view]]
-              [improject.registerationform :refer [registeration-form]]))
+              [improject.registerationform :refer [registeration-form]]
+              [improject.main :refer [main-view]]))
  
 ;; -------------------------
 ;; Views
@@ -30,6 +31,7 @@
                    [:h2 "Register"]
                    [registeration-form]
                    [:p "After registration, admins will be notified of your registration. After they have accepted you, you'll be notified and can log in"]]
+        :main [main-view]
         [:div "Bugaa, location is " (str @location)])])))
 
 (defn home-page []

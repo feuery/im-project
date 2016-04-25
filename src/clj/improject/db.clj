@@ -73,7 +73,9 @@
 
   (pprint (k/select users
                     (k/with friendship)
-                    (k/with font_preference)))
+                    (k/with font_preference)
+                    ;; (k/where (= :username "feuer"))
+                    ))
 
   (k/insert font_preference
             (k/values {:bold true})))
