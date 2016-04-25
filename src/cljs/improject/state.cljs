@@ -36,4 +36,6 @@
                 
 (register-sub :location
               (fn [db _]
-                (reaction (get-in @db [:location]))))
+                (reaction (get-in @db [:location])))) 
+
+(.log js/console "improject.state loaded")

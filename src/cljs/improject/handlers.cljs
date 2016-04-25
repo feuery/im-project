@@ -80,4 +80,5 @@
                   (fn [db _]
                     ;; (set-url "/register")   
                     (assoc db :location :register)))
-                    
+
+(.log js/console "improject.handlers loaded")
