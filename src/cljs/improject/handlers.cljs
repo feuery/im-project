@@ -27,8 +27,7 @@
  :bad-result
  (fn [db [_ response]]
    (if (= response "Timeout")
-     (assoc db :sessionid -1
-            :username "")
+     (assoc db :location :login)
      (do 
        (js/alert response)
        db))))
@@ -66,13 +65,14 @@
 (register-handler :loggedin
                   (fn [db [_ result]]
                     (if (= result "success")
-                      (assoc db :sessionid 1)
+                      (assoc db :location :main)
                       (do
                         (.log js/console "Login failed")
                         db))))
 
 (register-handler :reset-location
                   (fn [db _]
+                    (.log js/console ":reset-location")
                     ;; (set-url "/login")  
                     (assoc db :location :login)))
 

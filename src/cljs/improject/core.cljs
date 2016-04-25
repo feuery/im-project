@@ -14,15 +14,15 @@
 ;; Views
 
 (defn initial-view []
-  (dispatch-sync [:reset-location])
+  ;; (dispatch-sync [:reset-location])
   (let [location (subscribe [:location])
         username (subscribe [:username])]
-    ;; (if (nil? @location)
-    ;;   (dispatch-sync [:reset-location]))
+    (if (nil? @location)
+      (dispatch-sync [:reset-location]))
     
     (fn []
       [:div 
-       ;; [:button#reset {:on-click (dispatch [:reset-location])} "Reset"]
+       [:button#reset {:on-click #(dispatch [:reset-location])} "Reset"]
        
       (case @location
         :login [login-view]
