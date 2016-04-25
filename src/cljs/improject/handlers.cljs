@@ -67,3 +67,13 @@
                       (do
                         (.log js/console "Login failed")
                         db))))
+
+(register-handler :reset-location
+                  (fn [db _] 
+                    (assoc db :location :login)))
+
+(register-handler :register
+                  (fn [db _]
+                    (-> (.-history js/window) (.pushState {} "Registering" "/register"))
+                    (assoc db :location :register)))
+                    

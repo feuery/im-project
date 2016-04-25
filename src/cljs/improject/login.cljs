@@ -47,8 +47,10 @@
            "This is an experimental instant messenger. This'll be made with ClojureScript and Clojure. Written by" [:a {:href "http://yearofourlord.blogspot.com"} "Feuer"]]
           
           [:div.column-three
-           [:p "Status of @no-users: " (if @no-users "true" "false")]
-           ;; [:p "Viewmodel: " (str @login-viewmodel)]
+           ;; [:p "Status of @no-users: " (if @no-users "true" "false")]
+           ;; [:p "Viewmodel: " (str @login-viewmodel)] 
+           [:a {:href "#"
+                :on-click #(dispatch [:register])} "Register"]
            [:button#loginbtn
             {:on-click #(login! @login-viewmodel)}
             "Login"]]]]))))

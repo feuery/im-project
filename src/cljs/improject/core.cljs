@@ -3,22 +3,25 @@
               [reagent.session :as session]
               [secretary.core :as secretary :include-macros true]
               [accountant.core :as accountant]
-              [re-frame.core :refer [subscribe]]
+              [re-frame.core :refer [subscribe dispatch-sync]]
               
               [improject.state :as state]
               [improject.handlers :as handlers]
               [improject.login :refer [login-view]]))
-
+ 
 ;; -------------------------
 ;; Views
 
 (defn initial-view []
-  (let [sessionid (subscribe [:sessionid])
+  (let [location (subscribe [:location])
         username (subscribe [:username])]
+    (if (nil? @location)
+      (dispatch-sync [:reset-location])) 
     (fn []
-      (if-not (pos? @sessionid)
-        [login-view]
-        [:div "Bugaa"]))))
+      [:div 
+      (case @location
+        :login [login-view]
+        [:div "Bugaa, location is " (str @location)])])))
 
 (defn home-page []
   [:div [initial-view]])

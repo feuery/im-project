@@ -34,3 +34,6 @@
 
 
                 
+(register-sub :location
+              (fn [db _]
+                (reaction (get-in @db [:location]))))
