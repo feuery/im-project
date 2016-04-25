@@ -8,18 +8,8 @@
                                    dispatch-sync
                                    subscribe]]))
 
-(def data (r/atom {:username ""
-                   :outbox []
+(def data (r/atom {:outbox []
                    :inbox []}))
-
-;; (def username (reaction (:username @data)))
-;; (def inbox (reaction (:inbox @data)))
-
-
-(register-sub :username
-              (fn [db [sid & _]]
-                (assert (= sid :username))
-                (reaction (get-in @db [:username]))))
 
 (register-sub :no-users
               (fn [db _]
