@@ -21,10 +21,13 @@
 
 (register-sub :username
               (fn [db _]
-                (reaction (get @db :username))))
+                (reaction (get-in @db [:user-model :username]))))
 
 (register-sub :friend-list
               (fn [db _]
-                (reaction (get @db :friend-list)))) 
+                (reaction (get @db :friend-list))))
+(register-sub :user-model
+              (fn [db _]
+                (reaction (get @db :user-model))))
 
 (.log js/console "improject.state loaded")

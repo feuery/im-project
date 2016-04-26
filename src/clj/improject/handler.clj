@@ -82,12 +82,14 @@
                 (pprint (first users))
                 {:status 200
                  :session (assoc session :username (:username login-model))
-                 :body "success"})
+                 :body (pr-str {:success? true
+                                :data (pr-str (first users))})})
               (do
                 (println  "Logging in for " (:username login-model) " failed. These users found: ")
                 (pprint users)
                 {:status 200
-                 :body "failure"})))))
+                 :body (pr-str {:success? false
+                                :data ""})})))))
                  
 
   (POST "/register-user" {{edn :edn} :params}        

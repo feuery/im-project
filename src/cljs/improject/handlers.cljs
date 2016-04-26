@@ -60,24 +60,27 @@
                            :format :url
                            :handler #(dispatch [:loggedin %])
                            :error-handler #(dispatch [:bad-result %])})
-                    (assoc db :username (:username login-vm))))
+                    db))
 
 (register-handler :loggedin
                   (fn [db [_ result]]
-                    (if (= result "success")
-                      (do
-                        (dispatch [:find-friends])
-                        (assoc db :location :main))
-                      (do
-                        (.log js/console "Login failed")
-                        db))))
+                    (let [{:keys [success? data]} (read-string result)
+                          data (read-string data)]
+                      (if success?
+                        (do
+                          (.log js/console "Login succeeded")
+                          (dispatch [:find-friends])
+                          (assoc db :location :main
+                                 :user-model data))
+                        (do
+                          (.log js/console "Login failed")
+                          db)))))
 
 (register-handler :reset-location
                   (fn [db _]
                     (.log js/console ":reset-location")
                     ;; (set-url "/login")  
-                    (assoc db :location :login)
-                    ))
+                    (assoc db :location :login)))
 
 (register-handler :register
                   (fn [db _]
@@ -87,10 +90,11 @@
 
 (register-handler :find-friends
                   (fn [db _]
-                    (GET (str "/friends-of/" (:username db))
-                         {:error-handler #(dispatch [:bad-result %])
-                          :handler #(dispatch [:friends-found %])})
-                    db))
+                    (let [url (str "/friends-of/" (-> db :user-model :username))]
+                      (GET url
+                           {:error-handler #(dispatch [:bad-result %])
+                            :handler #(dispatch [:friends-found %])})
+                      db)))
 
 (register-handler :friends-found
                   (fn [db [_ friends-result]]
