@@ -63,6 +63,33 @@
                        :personal_message "Voikukkia ei voi syödä"
                        :admin true
                        :font_id 1}))
+  (use 'improject.security)
+  
+  (k/insert users
+            (k/values {:username "toinen hahmo" 
+                       :displayname "toinen hahmo"
+                       :password (sha-512 "salis")
+                       :img_location "http://4everstatic.com/pictures/80x80/animals/wildlife/red-panda,-head-152734.jpg"
+                       :personal_message "Moi maailma"
+                       :admin false
+                       :can_login false
+                       :font_id 1}))
+
+  (k/insert users
+            (k/values {:username "kolmas hahmo" 
+                       :displayname "kolmas hahmo"
+                       :password (sha-512 "salis")
+                       :img_location "http://4everstatic.com/pictures/80x80/animals/wildlife/red-panda-152735.jpg"
+                       :personal_message "Terve kaikki"
+                       :admin false
+                       :can_login false
+                       :font_id 1}))
+
+  (use 'improject.serialization)
+
+  (make-friends! "feuer" "toinen hahmo")
+  (make-friends! "kolmas hahmo" "feuer")
+  
   (k/delete users)
 
   (k/select users)
