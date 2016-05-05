@@ -8,9 +8,12 @@
                                    subscribe]]))
 
 (defn friend-cell [friend & {:keys [own?] :or {own? false}}]
-  [ (if own?
+  [(if own?
       :div.friend-cell.flex.own
       :div.friend-cell.flex)
+   {:on-click (if own?
+                #()
+                #(dispatch [:open-conv (:username friend)]))}
    [:div.friend-img
     [:img {:src (:img_location friend)
            :alt (str "Image of " (:displayname friend))}]]
@@ -26,10 +29,9 @@
                         (map friend-cell)
                         vec
                         (into [:div#friend-list]))]
-        (.log js/console (str toret))
+        ;; (.log js/console (str toret))
         [:div
-         ;; [:div.friend-cell.own
-         ;;  [:h2 "Logged in as " (:displayname @user)]]
+         [:p "You have to allow pop-ups because conversations are opened in their own tabs"]
          [friend-cell @user :own? true]
          
          toret]))))

@@ -92,7 +92,8 @@
   
   (k/delete users)
 
-  (k/select users)
+  (k/select users
+            (k/with friendship))
 
   (k/select font_preference)
 

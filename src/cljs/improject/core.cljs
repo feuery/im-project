@@ -14,16 +14,15 @@
 ;; -------------------------
 ;; Views
 
+(defn bugaa [location]
+  [:div "Bugaa, location is " (str location)])
+
 (defn initial-view []
-  ;; (dispatch-sync [:reset-location])
-  (let [location (subscribe [:location])
-        username (subscribe [:username])]
-    (if (nil? @location)
-      (dispatch-sync [:reset-location]))
+  (let [location (subscribe [:location])]
     
     (fn []
       [:div 
-       [:button#reset {:on-click #(dispatch [:reset-location])} "Reset"]
+       [:button#reset {:on-click #(dispatch [:reset-location :main])} "Reset"]
        
       (case @location
         :login [login-view]
@@ -32,10 +31,19 @@
                    [registeration-form]
                    [:p "After registration, admins will be notified of your registration. After they have accepted you, you'll be notified and can log in"]]
         :main [main-view]
-        [:div "Bugaa, location is " (str @location)])])))
+        [bugaa @location])])))
 
 (defn home-page []
   [:div [initial-view]])
+
+(defn conversation-page []
+  (let [location (subscribe [:location])]
+    (fn []
+      [:div [:button#reset {:on-click #(dispatch [:reset-location :conversation])} "Reset"]
+       (case @location
+         :conversation [:div "Keskustelu"]
+         [bugaa @location])])))
+         
 
 (defn current-page []
   [:div [(session/get :current-page)]])
@@ -44,7 +52,15 @@
 ;; Routes
 
 (secretary/defroute "/" []
+  (dispatch-sync [:reset-location :login])
+  (.log js/console "In initial-page")
   (session/put! :current-page #'home-page))
+
+(secretary/defroute "/conversation/:friend" [friend]
+  ;; (dispatch [:set-conversation friend])
+  (dispatch-sync [:reset-location :conversation])
+  (.log js/console "In conversation-page")
+  (session/put! :current-page #'conversation-page))
 
 
 ;; -------------------------

@@ -24,6 +24,7 @@
                (k/values (assoc user :font_id @font-id))))))
 
 (defn get-friends-of! [username]
+  ;; TODO This should pick also friends whose friend you've been set as
   (->>
    (k/select db/users
              (k/with db/friendship)

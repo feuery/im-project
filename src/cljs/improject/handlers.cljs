@@ -77,10 +77,13 @@
                           db)))))
 
 (register-handler :reset-location
-                  (fn [db _]
-                    (.log js/console ":reset-location")
-                    ;; (set-url "/login")  
-                    (assoc db :location :login)))
+                  (fn [db [_ location :as params]]
+                    (let [location (or location :login)]
+                    (.log js/console (str "Params are " params))
+                      (.log js/console (str ":reset-location to " location))
+                            ;; (set-url "/login")
+                            ;; (if-not (= (-> js/window .-location ) "
+                      (assoc db :location location))))
 
 (register-handler :register
                   (fn [db _]
@@ -100,5 +103,10 @@
                   (fn [db [_ friends-result]]
                     (let [friend-list (or (read-string friends-result) [])]
                       (assoc db :friend-list friend-list))))
+
+(register-handler :open-conv
+                  (fn [db [_ friend-username]]
+                    (.open js/window (str "/conversation/" friend-username) "_blank")
+                    db))
 
 (.log js/console "improject.handlers loaded")

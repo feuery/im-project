@@ -27,7 +27,7 @@
   (html5
    [:head
      [:meta {:charset "utf-8"}]
-     [:meta {:name "viewport"
+    [:meta {:name "viewport"
              :content "width=device-width, initial-scale=1"}]
      (include-css (if (env :dev) "/css/site.css" "/css/site.min.css"))]
     [:body
@@ -56,7 +56,6 @@
           :body (if (empty? users)
                   "true"
                   "false")}))
-
   (GET "/friends-of/:user"
        {{user :user} :params
         {username :username :as session} :session}
@@ -66,6 +65,10 @@
           :headers {"Content-Type" "text/plain"}
           :body (pr-str (get-friends-of! user))}
          infernal-error))
+
+  (GET "/conversation/:friend" {{friend :friend} :params
+                                {username :username :as session} :session}
+       loading-page)
 
   (POST "/login" {{edn :edn} :params
                   session :session}
