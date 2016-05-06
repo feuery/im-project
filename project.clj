@@ -23,6 +23,7 @@
                   :exclusions [org.clojure/tools.reader]]
                  [re-frame "0.7.0"]
                  [cljs-ajax "0.5.4"]
+                 [org.clojure/core.async "0.2.374"]
 
                  [prismatic/schema "1.1.0"]
 

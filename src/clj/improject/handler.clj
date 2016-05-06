@@ -7,14 +7,20 @@
             [config.core :refer [env]]
             [korma.core :as k]
             [clojure.edn :refer [read-string]]
+            [clojure.string :as str]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [clojure.pprint :refer [pprint]]
             [schema.core :as schemas]
 
-            [improject.db :refer [users]]
+            [improject.db :refer [users font_preference]]
             [improject.schemas :refer [user-schema login-schema]]
             [improject.serialization :refer [save-user! get-friends-of!]]
-            [improject.security :refer [sha-512]]))
+            [improject.security :refer [sha-512]]
+
+            [clojure.core.async :as a]))
+
+(defn in? [col val]
+  (some (partial = val) col))
 
 (def mount-target
   [:div#app
@@ -34,9 +40,24 @@
      mount-target
      (include-js "/js/app.js")]))
 
+(defn loading-page-with-js [js]
+  (html5
+   [:head
+    [:meta {:charset "utf-8"}]
+    [:meta {:name "viewport"
+            :content "width=device-width, initial-scale=1"}]
+    (include-css (if (env :dev) "/css/site.css" "/css/site.min.css"))
+    [:script js]]
+    [:body
+     mount-target
+     (include-js "/js/app.js")]))
+
 (def infernal-error {:status 500
                      :headers {"Content-Type" "text/plain"}
                      :body "Infernal Server Error"})
+
+(def success {:status 200
+              :headers {"Content-Type" "text/plain"}})
 
 (defmacro with-validation [[obj form schema] & forms]
   `(try
@@ -65,10 +86,31 @@
           :headers {"Content-Type" "text/plain"}
           :body (pr-str (get-friends-of! user))}
          infernal-error))
+  (POST "/user"
+        {{friend-username :friend
+          user :user} :params
+          {username :username} :session}
+        (if (= user username)
+          (let [friends (->> (get-friends-of! user)
+                             (filter #(= (:username %) friend-username)))]
+            (if (= (count friends) 1)
+              (assoc success :body (pr-str (first friends)))
+              (assoc infernal-error :body (if (< (count friends) 1)
+                                                 "Too few friends"
+                                                 "Too many friends"))))
+          (do
+            (println "(= " user " " username")")
+            infernal-error)))
 
   (GET "/conversation/:friend" {{friend :friend} :params
                                 {username :username :as session} :session}
-       loading-page)
+       (let [users (k/select users
+                             (k/with font_preference)
+                             (k/where (= username :username)))]
+         (if-not (empty? users)
+           (loading-page-with-js
+            (str "var usermodel = \"" (str/replace (pr-str (first users)) #"\"" "\\\\\"") "\";"))
+           infernal-error)))
 
   (POST "/login" {{edn :edn} :params
                   session :session}

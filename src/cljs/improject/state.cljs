@@ -17,7 +17,7 @@
 
 (register-sub :location
               (fn [db _]
-                (reaction (get-in @db [:location]))))
+                (reaction (get-in @db [:location])))) 
 
 (register-sub :username
               (fn [db _]
@@ -29,5 +29,9 @@
 (register-sub :user-model
               (fn [db _]
                 (reaction (get @db :user-model))))
+
+(register-sub :conversation-partner
+              (fn [db _]
+                (reaction (get @db :conversation-partner))))
 
 (.log js/console "improject.state loaded")

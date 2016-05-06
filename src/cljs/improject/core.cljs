@@ -37,12 +37,19 @@
   [:div [initial-view]])
 
 (defn conversation-page []
-  (let [location (subscribe [:location])]
+  (let [location (subscribe [:location])
+        conv-partner (subscribe [:conversation-partner])
+        me (subscribe [:username])
+        ]
     (fn []
       [:div [:button#reset {:on-click #(dispatch [:reset-location :conversation])} "Reset"]
        (case @location
-         :conversation [:div "Keskustelu"]
-         [bugaa @location])])))
+         :conversation [:div
+                        [:div (str "Conversation with " (pr-str @conv-partner))] 
+                        [:div (str "You're " @me)]
+                        [:div (str "Usermodel is " js/usermodel)]]
+         [bugaa @location])
+       ])))
          
 
 (defn current-page []
@@ -57,8 +64,14 @@
   (session/put! :current-page #'home-page))
 
 (secretary/defroute "/conversation/:friend" [friend]
-  ;; (dispatch [:set-conversation friend])
+  ;; we need our user-model (img and font settings and all)
+  ;; we need recipient's name for message dispatch
+  ;; we need recipient's model for UI
+  
   (dispatch-sync [:reset-location :conversation])
+  (dispatch-sync [:set-user-model js/usermodel])
+  ;; (dispatch-sync [:find-friends]) ;; this fucker makes an Ajax-call, which leads to :set-conversation-partner being called before friend-list is populated
+  (dispatch-sync [:set-conversation-partner friend])
   (.log js/console "In conversation-page")
   (session/put! :current-page #'conversation-page))
 
