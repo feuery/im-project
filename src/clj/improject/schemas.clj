@@ -12,6 +12,13 @@
                   :displayname s/Str
                   :img_location s/Str})
 
+(def sanitized-user-schema (dissoc user-schema :password))
+
 (def login-schema {:username s/Str
                    :password s/Str})
 
+(def message-schema {:recipient s/Str
+                     :model {:message s/Str
+                             :sender (-> user-schema
+                                         (dissoc :password))}})
+  

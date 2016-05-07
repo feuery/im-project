@@ -13,14 +13,29 @@
             [schema.core :as schemas]
 
             [improject.db :refer [users font_preference]]
-            [improject.schemas :refer [user-schema login-schema]]
+            [improject.schemas :refer [sanitized-user-schema login-schema message-schema]]
             [improject.serialization :refer [save-user! get-friends-of!]]
             [improject.security :refer [sha-512]]
 
             [clojure.core.async :as a]))
 
+(defn sanitize-user
+  "Sanitizes user-objects for sending to user. Sanitization consists of removing admin-, can_login-, password-, id- and font_id - flags"
+  [u]
+  (-> u
+      (dissoc :admin :can_login :id :font_id :password)))
+
 (defn in? [col val]
   (some (partial = val) col))
+
+(defn dissoc-in
+  "Dissociates an entry from a nested associative structure where ks is a
+  sequence of keys and returns a new nested structure."
+  {:static true}
+  [m [k & ks]]
+  (if ks
+    (assoc m k (dissoc-in (get m k) ks))
+    (dissoc m k)))
 
 (def mount-target
   [:div#app
@@ -92,9 +107,11 @@
           {username :username} :session}
         (if (= user username)
           (let [friends (->> (get-friends-of! user)
-                             (filter #(= (:username %) friend-username)))]
+                             (filter #(= (:username %) friend-username))
+                             (map sanitize-user))]
             (if (= (count friends) 1)
-              (assoc success :body (pr-str (first friends)))
+              (with-validation [frst (first friends) sanitized-user-schema]
+                (assoc success :body (pr-str frst)))
               (assoc infernal-error :body (if (< (count friends) 1)
                                                  "Too few friends"
                                                  "Too many friends"))))
@@ -102,14 +119,31 @@
             (println "(= " user " " username")")
             infernal-error)))
 
+  (POST "/send-message"
+        {{model :model
+          recipient :recipient :as params} :params
+          {username :username :as session} :session}
+        (def repl-message model)
+        (println "Class of model " (class model))
+        
+        (with-validation [message {:model (read-string model)
+                                   :recipient recipient}
+                          message-schema]
+          (println "Got a message: ")
+          (pprint message)))
+        
+
   (GET "/conversation/:friend" {{friend :friend} :params
                                 {username :username :as session} :session}
-       (let [users (k/select users
-                             (k/with font_preference)
-                             (k/where (= username :username)))]
+       (let [users (->>
+                    (k/select users
+                              (k/with font_preference)
+                              (k/where (= username :username)))
+                    (map sanitize-user))]
          (if-not (empty? users)
-           (loading-page-with-js
-            (str "var usermodel = \"" (str/replace (pr-str (first users)) #"\"" "\\\\\"") "\";"))
+           (with-validation [frst (first users) sanitized-user-schema]
+             (loading-page-with-js
+              (str "var usermodel = \"" (str/replace (pr-str frst) #"\"" "\\\\\"") "\";")))
            infernal-error)))
 
   (POST "/login" {{edn :edn} :params
@@ -143,7 +177,7 @@
                           (-> edn
                               read-string
                               (update-in [:password] sha-512)) ;;parsing the incoming edn
-                          user-schema ;;schema
+                          sanitized-user-schema ;;schema
                           ]
           (let [interesting-users (k/select users
                                             (k/where {:username username}))

@@ -1,7 +1,9 @@
 (ns improject.serialization
   (:require [korma.core :as k]
             [korma.db :refer [transaction]]
-            [improject.db :as db]))
+            [improject.db :as db]
+            [improject.schemas :refer [user-schema]]
+            [schema.core :as schemas]))
 
 (defn save-user! [user-with-font]
   (let [font-keyset  [:color
@@ -34,8 +36,11 @@
    (map :username2)
    (map (fn [username]
           (k/select db/users
-                    (k/where (= :username username)))))
+                            (k/with db/font_preference)
+                            (k/where (= :username username)))))
    flatten
+   (map #(dissoc % :id :font_id :admin :can_login))
+   (map (partial schemas/validate user-schema))
    vec))
 
 (defn in? [seq val]
@@ -56,3 +61,4 @@
     (if-not (friends? username1 username2)
       (k/insert db/friendship
                 (k/values {:username1 username1 :username2 username2})))))
+

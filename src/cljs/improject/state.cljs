@@ -34,4 +34,9 @@
               (fn [db _]
                 (reaction (get @db :conversation-partner))))
 
+(register-sub :conversation
+              (fn [db _]
+                (reaction (or (get @db :conversation)
+                              "Conversations not implemented"))))
+
 (.log js/console "improject.state loaded")

@@ -75,6 +75,18 @@
                         (.log js/console (str "Result " result))
                         db))))
 
+(register-handler :send-message
+                  (fn [db [_ friend-username message]]
+                    (let [message-model (pr-str {:message message ;;contains font-data
+                                                 :sender (:user-model db)})]
+                      (js/alert message-model)
+                      (POST "/send-message"
+                            {:params {:model message-model
+                                      :recipient friend-username}
+                             :format :url
+                             :handler #(.log js/console %)
+                             :error-handler error-handler}))))
+
 (register-handler :login
                   (fn [db [_ login-vm]]
                     (POST "/login"
