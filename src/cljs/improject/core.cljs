@@ -9,7 +9,8 @@
               [improject.handlers :as handlers]
               [improject.login :refer [login-view]]
               [improject.registerationform :refer [registeration-form]]
-              [improject.main :refer [main-view]]))
+              [improject.main :refer [main-view]]
+              [improject.conversation :refer [conversation-page]]))
  
 ;; -------------------------
 ;; Views
@@ -35,21 +36,6 @@
 
 (defn home-page []
   [:div [initial-view]])
-
-(defn conversation-page []
-  (let [location (subscribe [:location])
-        conv-partner (subscribe [:conversation-partner])
-        me (subscribe [:username])
-        ]
-    (fn []
-      [:div [:button#reset {:on-click #(dispatch [:reset-location :conversation])} "Reset"]
-       (case @location
-         :conversation [:div
-                        [:div (str "Conversation with " (pr-str @conv-partner))] 
-                        [:div (str "You're " @me)]
-                        [:div (str "Usermodel is " js/usermodel)]]
-         [bugaa @location])
-       ])))
          
 
 (defn current-page []
@@ -73,7 +59,7 @@
   ;; (dispatch-sync [:find-friends]) ;; this fucker makes an Ajax-call, which leads to :set-conversation-partner being called before friend-list is populated
   (dispatch-sync [:set-conversation-partner friend])
   (.log js/console "In conversation-page")
-  (session/put! :current-page #'conversation-page))
+  (session/put! :current-page #'conversation-page)) 
 
 
 ;; -------------------------

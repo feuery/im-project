@@ -68,7 +68,7 @@ input {
 #reset {
     position: absolute;
     right: 0px;
-    bottom: 0px;  
+    top: 500px;  
 }
 
 .personal-message {
@@ -88,4 +88,43 @@ input {
     background-color: #A0A0A0;
 }
 
+header {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    left: 0px;
+    height: 20%;
+}
+
+#message-input {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    height: 20%;
+    left: 0px;
+}
+
+#message-input>textarea{
+    width: 79%;
+    height: 100%;
+    padding: 0px;
+    border: none;
+}
+
+#message-input>#send-msg {
+    width: 20%;
+    height: 100%;
+
+    /* Safari 9.1 specific hack  */
+    position: relative;
+    top: -85px;
+}
+
+#conversation {
+    position:absolute;
+    top: 15%;
+    height: 65%;
+    width: 100%;
+    left: 0px;
+}
     
