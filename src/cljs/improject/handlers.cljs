@@ -79,13 +79,13 @@
                   (fn [db [_ friend-username message]]
                     (let [message-model (pr-str {:message message ;;contains font-data
                                                  :sender (:user-model db)})]
-                      (js/alert message-model)
                       (POST "/send-message"
                             {:params {:model message-model
                                       :recipient friend-username}
                              :format :url
                              :handler #(.log js/console %)
-                             :error-handler error-handler}))))
+                             :error-handler error-handler})
+                      db)))
 
 (register-handler :login
                   (fn [db [_ login-vm]]
