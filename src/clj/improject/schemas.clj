@@ -17,8 +17,13 @@
 (def login-schema {:username s/Str
                    :password s/Str})
 
-(def message-schema {:recipient s/Str
-                     :model {:message s/Str
-                             :sender (-> user-schema
-                                         (dissoc :password))}})
+(def message-schema {:message s/Str
+                     :sender (-> user-schema
+                                 (dissoc :password))
+                     ;; todo fix this with cljc files if the need to use these schemas client-side arises
+                     :date org.joda.time.DateTime})
+
+(def enveloped-message-schema {:recipient s/Str
+                               :model message-schema})
   
+(def inbox-schema {s/Str [message-schema]})

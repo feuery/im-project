@@ -27,6 +27,11 @@
 
                  [prismatic/schema "1.1.0"]
 
+                 ;; Doesn't work for reasons I don't particularly care of 
+                 ;; [schema-contrib "0.1.3"]
+
+                 [clj-time "0.11.0"]
+
                  [org.postgresql/postgresql "9.4.1208.jre7"]
                  [org.clojure/java.jdbc "0.5.8"]                 
                  [korma "0.3.0"]]

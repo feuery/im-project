@@ -13,11 +13,13 @@
             [schema.core :as schemas]
 
             [improject.db :refer [users font_preference]]
-            [improject.schemas :refer [sanitized-user-schema login-schema message-schema]]
+            [improject.schemas :refer [sanitized-user-schema login-schema enveloped-message-schema]]
             [improject.serialization :refer [save-user! get-friends-of!]]
             [improject.security :refer [sha-512]]
+            [improject.inboxes :refer [send-to!]]
 
-            [clojure.core.async :as a]))
+            [clojure.core.async :as a]
+            [clj-time.core :as t]))
 
 (defn sanitize-user
   "Sanitizes user-objects for sending to user. Sanitization consists of removing admin-, can_login-, password-, id- and font_id - flags"
@@ -125,12 +127,16 @@
           {username :username :as session} :session}
         (def repl-message model)
         (println "Class of model " (class model))
-        
-        (with-validation [message {:model (read-string model)
-                                   :recipient recipient}
-                          message-schema]
-          (println "Got a message: ")
-          (pprint message)))
+        (let [model (-> model
+                        read-string
+                        (assoc :date (t/now)))]
+          (pprint model)
+          (with-validation [_ {:model model
+                               :recipient recipient}
+                            enveloped-message-schema]
+            (send-to! recipient model)
+            (assoc success :body "Sending succeeded"))))
+            
         
 
   (GET "/conversation/:friend" {{friend :friend} :params
