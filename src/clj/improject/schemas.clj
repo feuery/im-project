@@ -12,7 +12,12 @@
                   :displayname s/Str
                   :img_location s/Str})
 
-(def sanitized-user-schema (dissoc user-schema :password))
+(def sanitized-user-schema (-> user-schema
+                               (dissoc :password)))
+
+(def session-user-schema (-> sanitized-user-schema
+                             (assoc :sessionid s/Keyword)))
+                             
 
 (def login-schema {:username s/Str
                    :password s/Str})
@@ -27,3 +32,5 @@
                                :model message-schema})
   
 (def inbox-schema {s/Str [message-schema]})
+
+(def session-id-schema {s/Str [s/Keyword]})

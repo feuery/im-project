@@ -13,7 +13,11 @@
             [schema.core :as schemas]
 
             [improject.db :refer [users font_preference]]
-            [improject.schemas :refer [sanitized-user-schema login-schema enveloped-message-schema]]
+            [improject.schemas :refer [sanitized-user-schema
+                                       login-schema
+                                       enveloped-message-schema
+                                       session-user-schema
+                                       session-id-schema]]
             [improject.serialization :refer [save-user! get-friends-of!]]
             [improject.security :refer [sha-512]]
             [improject.inboxes :refer [send-to!]]
@@ -83,6 +87,10 @@
      (catch Exception ex#
        (pprint ex#)
        infernal-error)))
+
+;; username - list-of-gensym'd-keywords
+(def session-ids (atom {}
+                       :validator (partial schemas/validate session-id-schema)))
 
 (defroutes routes
   (GET "/" [] loading-page)
@@ -160,15 +168,27 @@
                           (-> edn read-string (update-in [:password] sha-512))
                           login-schema]
           (let [users (k/select users
+                                (k/with font_preference)
                                 (k/where login-model))]
             (if (= (count users) 1)
-              (do
-                (print "Logged in")
-                (pprint (first users))
-                {:status 200
-                 :session (assoc session :username (:username login-model))
-                 :body (pr-str {:success? true
-                                :data (pr-str (first users))})})
+              (let [session-id (keyword (gensym))]
+                (with-validation [user (-> users
+                                           first
+                                           (assoc :sessionid session-id)
+                                           (dissoc :admin :password :can_login
+                                                   :id :font_id))
+                                  session-user-schema]
+                  (print "Logged in")
+                  (pprint user)
+
+                  (when (nil? (get @session-ids (:username user)))
+                    (swap! session-ids assoc (:username user) []))
+                  (swap! session-ids update (:username user) conj session-id)
+                  
+                  {:status 200
+                   :session (assoc session :username (:username login-model))
+                   :body (pr-str {:success? true
+                                  :data (pr-str user)})}))
               (do
                 (println  "Logging in for " (:username login-model) " failed. These users found: ")
                 (pprint users)
