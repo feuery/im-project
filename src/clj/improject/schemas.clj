@@ -26,7 +26,8 @@
                      :sender (-> user-schema
                                  (dissoc :password))
                      ;; todo fix this with cljc files if the need to use these schemas client-side arises
-                     :date org.joda.time.DateTime})
+                     :date org.joda.time.DateTime
+                     :sent-to [s/Keyword]})
 
 (def enveloped-message-schema {:recipient s/Str
                                :model message-schema})

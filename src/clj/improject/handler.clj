@@ -20,7 +20,7 @@
                                        session-id-schema]]
             [improject.serialization :refer [save-user! get-friends-of!]]
             [improject.security :refer [sha-512]]
-            [improject.inboxes :refer [send-to!]]
+            [improject.inboxes :refer [send-to! in?]]
 
             [clojure.core.async :as a]
             [clj-time.core :as t]))
@@ -30,9 +30,6 @@
   [u]
   (-> u
       (dissoc :admin :can_login :id :font_id :password)))
-
-(defn in? [col val]
-  (some (partial = val) col))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure where ks is a
@@ -128,7 +125,7 @@
           (do
             (println "(= " user " " username")")
             infernal-error)))
-
+  
   (POST "/send-message"
         {{model :model
           recipient :recipient :as params} :params
@@ -137,7 +134,8 @@
         (println "Class of model " (class model))
         (let [model (-> model
                         read-string
-                        (assoc :date (t/now)))]
+                        (assoc :date (t/now)
+                               :sent-to []))]
           (pprint model)
           (with-validation [_ {:model model
                                :recipient recipient}
