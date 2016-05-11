@@ -27,21 +27,17 @@
 
 (defn get-friends-of! [username]
   ;; TODO This should pick also friends whose friend you've been set as
-  (->>
-   (k/select db/users
-             (k/with db/friendship)
-             (k/where (= :username username)))
-   first
-   :friendship
-   (map :username2)
-   (map (fn [username]
-          (k/select db/users
-                            (k/with db/font_preference)
-                            (k/where (= :username username)))))
-   flatten
-   (map #(dissoc % :id :font_id :admin :can_login))
-   (map (partial schemas/validate user-schema))
-   vec))
+  (let [query "SELECT u.*, fonts.*
+FROM friendship f
+LEFT JOIN users u ON f.username1 = u.username OR f.username2 = u.username
+LEFT JOIN font_preference fonts ON fonts.id = u.font_id
+WHERE ((f.username1 = ? OR f.username2 = ?) 
+AND u.username <> ?)"]
+    (->> (k/exec-raw [query [username username username]] :results)
+         (map #(dissoc % :id :font_id :admin :can_login))
+         (map (partial schemas/validate user-schema))
+         vec)))
+                                
 
 (defn in? [seq val]
   (some (partial = val) seq ))
