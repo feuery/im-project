@@ -14,6 +14,7 @@
 
             [improject.db :refer [users font_preference]]
             [improject.schemas :refer [sanitized-user-schema
+                                       user-schema
                                        login-schema
                                        enveloped-message-schema
                                        session-user-schema
@@ -166,6 +167,7 @@
                                :recipient recipient}
                             enveloped-message-schema]
             (send-to! recipient model)
+            (send-to! username model)
             (assoc success :body "Sending succeeded"))))
             
         
@@ -234,7 +236,7 @@
                           (-> edn
                               read-string
                               (update-in [:password] sha-512)) ;;parsing the incoming edn
-                          sanitized-user-schema ;;schema
+                          user-schema ;;schema
                           ]
           (let [interesting-users (k/select users
                                             (k/where {:username username}))

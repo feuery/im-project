@@ -122,9 +122,10 @@ header {
 
 #conversation {
     position:absolute;
-    top: 15%;
-    height: 65%;
+    top: 20%;
+    height: 60%;
     width: 100%;
+    overflow-y: scroll;    
     left: 0px;
 }
     
