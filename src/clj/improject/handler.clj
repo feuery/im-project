@@ -20,7 +20,7 @@
                                        session-id-schema]]
             [improject.serialization :refer [save-user! get-friends-of!]]
             [improject.security :refer [sha-512]]
-            [improject.inboxes :refer [send-to! in?]]
+            [improject.inboxes :refer [send-to! in? inbox-of!]]
 
             [clojure.core.async :as a]
             [clj-time.core :as t]))
@@ -125,7 +125,16 @@
           (do
             (println "(= " user " " username")")
             infernal-error)))
-  
+  (POST "/inbox" {{username :username
+                   session-id :sessionid} :params
+                   {session-username :username} :session}
+        (if (and (= username session-username)
+                 (contains? @session-ids username)
+                 (in? (get @session-ids username) session-id))
+          (-> success
+              (assoc :body (-> (inbox-of! username session-id session-ids)
+                               pr-str)))
+          infernal-error))
   (POST "/send-message"
         {{model :model
           recipient :recipient :as params} :params
