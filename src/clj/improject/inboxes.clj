@@ -30,6 +30,7 @@
             already-sent (filter #(in? (:sent-to %) session-id) inbox)
             not-sent (->> inbox
                           (filter (complement (partial in? already-sent)))
+                          (sort-by :date)
                           vec)]
         (println "There's something fishy on the following line")
         (swap! inboxes update whose (comp vec

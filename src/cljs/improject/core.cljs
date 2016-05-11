@@ -49,15 +49,15 @@
   (.log js/console "In initial-page")
   (session/put! :current-page #'home-page))
 
-(secretary/defroute "/conversation/:friend" [friend]
+(secretary/defroute "/sid/:sid/conversation/:friend" [session-id friend]
   ;; we need our user-model (img and font settings and all)
   ;; we need recipient's name for message dispatch
-  ;; we need recipient's model for UI
-  
+  ;; we need recipient's model for UI  
   (dispatch-sync [:reset-location :conversation])
   (dispatch-sync [:set-user-model js/usermodel])
   ;; (dispatch-sync [:find-friends]) ;; this fucker makes an Ajax-call, which leads to :set-conversation-partner being called before friend-list is populated
   (dispatch-sync [:set-conversation-partner friend])
+  (dispatch [:load-inbox])
   (.log js/console "In conversation-page")
   (session/put! :current-page #'conversation-page)) 
 

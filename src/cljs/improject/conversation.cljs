@@ -22,7 +22,7 @@
         [:header
          ;; well not exactly own, but that setting removes excess onhover- styling and the onclick listener
          [friend-cell @conv-partner :own? true]]
-        [:article#conversation  @conversation
+        [:article#conversation  (pr-str @conversation)  
          [:br] [:hr]
          @message
          [:br] [:hr]

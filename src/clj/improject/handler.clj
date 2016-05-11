@@ -126,15 +126,31 @@
             (println "(= " user " " username")")
             infernal-error)))
   (POST "/inbox" {{username :username
-                   session-id :sessionid} :params
-                   {session-username :username} :session}
-        (if (and (= username session-username)
-                 (contains? @session-ids username)
-                 (in? (get @session-ids username) session-id))
-          (-> success
-              (assoc :body (-> (inbox-of! username session-id session-ids)
-                               pr-str)))
-          infernal-error))
+                   session-id :sessionid :as params} :params
+                   {session-username :username :as session} :session}
+        (let [session-id (-> session-id
+                             (str/replace #":" "")
+                             keyword)]
+          (if (and (= username session-username)
+                   (contains? @session-ids username)
+                   (in? (get @session-ids username) session-id))
+            (-> success
+                (assoc :body (-> (inbox-of! username session-id session-ids)
+                                 pr-str)))
+            (do
+              (println "(= username session-username) ? "
+                       (if (= username session-username)
+                         "true"
+                         "false"))
+              (println "(contains? @session-ids username)"
+                       (if (contains? @session-ids username)
+                         "true"
+                         "false"))
+              (println "(in? (get @session-ids username) session-id)"
+                       (if (in? (get @session-ids username) session-id)
+                         "true"
+                         "false"))
+              infernal-error))))
   (POST "/send-message"
         {{model :model
           recipient :recipient :as params} :params
@@ -143,7 +159,7 @@
         (println "Class of model " (class model))
         (let [model (-> model
                         read-string
-                        (assoc :date (t/now)
+                        (assoc :date (.toDate (t/now))
                                :sent-to []))]
           (pprint model)
           (with-validation [_ {:model model
@@ -154,15 +170,23 @@
             
         
 
-  (GET "/conversation/:friend" {{friend :friend} :params
-                                {username :username :as session} :session}
+  (GET "/sid/:sid/conversation/:friend"
+       {{friend :friend
+         session-id :sid} :params
+         {username :username :as session} :session}
        (let [users (->>
                     (k/select users
                               (k/with font_preference)
                               (k/where (= username :username)))
                     (map sanitize-user))]
          (if-not (empty? users)
-           (with-validation [frst (first users) sanitized-user-schema]
+           (with-validation [frst (-> users
+                                      first
+                                      (assoc :sessionid (keyword (str/replace
+                                                                  session-id
+                                                                  #":"
+                                                                  ""))))
+                             session-user-schema]
              (loading-page-with-js
               (str "var usermodel = \"" (str/replace (pr-str frst) #"\"" "\\\\\"") "\";")))
            infernal-error)))

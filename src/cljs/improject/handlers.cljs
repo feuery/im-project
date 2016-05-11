@@ -87,6 +87,25 @@
                              :error-handler error-handler})
                       db)))
 
+(register-handler :load-inbox
+                  (fn [db _]
+                    (.log js/console ":load-inbox")
+                    (POST "/inbox"
+                          {:params {:username (get-in db [:user-model :username])
+                                    :sessionid (get-in db [:user-model :sessionid])}
+                           :format :url
+                           :handler #(dispatch [:inbox-loaded %])
+                           :error-handler error-handler})
+                    db))
+
+(register-handler :inbox-loaded
+                  (fn [db [_ inbox-str]]
+                    (let [inbox (read-string inbox-str)]
+                      (js/setTimeout #(dispatch [:load-inbox]) 1000)
+                      (if (nil? (:inbox db))
+                        (assoc db :inbox inbox)
+                        (update db :inbox concat inbox)))))
+
 (register-handler :login
                   (fn [db [_ login-vm]]
                     (POST "/login"
@@ -146,8 +165,9 @@
 
 (register-handler :open-conv
                   (fn [db [_ friend-username]]
-                    (.open js/window (str "/conversation/" friend-username) "_blank")
-                    (.log js/console (str "Opened conversation with " friend-username))
-                    db))
+                    (let [sid (get-in db [:user-model :sessionid])]
+                      (.open js/window (str "/sid/" sid "/conversation/" friend-username) "_blank")
+                      (.log js/console (str "Opened conversation with " friend-username))
+                      db)))
 
 (.log js/console "improject.handlers loaded")

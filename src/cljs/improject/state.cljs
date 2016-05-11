@@ -36,7 +36,6 @@
 
 (register-sub :conversation
               (fn [db _]
-                (reaction (or (get @db :conversation)
-                              "Conversations not implemented"))))
+                (reaction (get @db :inbox)))) 
 
 (.log js/console "improject.state loaded")
