@@ -18,6 +18,7 @@
                  [yogthos/config "0.8"]
                  [org.clojure/clojurescript "1.8.40"
                   :scope "provided"]
+                 [figwheel-sidecar "0.5.3-1"]
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"
                   :exclusions [org.clojure/tools.reader]]
@@ -34,7 +35,10 @@
 
                  [org.postgresql/postgresql "9.4.1208.jre7"]
                  [org.clojure/java.jdbc "0.5.8"]                 
-                 [korma "0.3.0"]]
+                 [korma "0.3.0"]
+
+                 
+                 [org.clojure/tools.nrepl "0.2.12"]]
 
   :plugins [[lein-environ "1.0.2"]
             [lein-cljsbuild "1.1.1"]
@@ -67,7 +71,7 @@
                                         :output-dir "target/cljsbuild/public/js/out"
                                         :asset-path   "/js/out"
                                         :optimizations :none
-                                        :source-map true
+                                        ;; :source-map true
                                         :pretty-print  true}}}}
 
   ;; :profiles {:dev {:plugins [[com.cemerick/austin "0.1.6"]]}}
@@ -86,7 +90,6 @@
                                                 org.clojure/clojurescript
                                                 org.clojure/core.async
                                                 org.clojure/tools.analyzer.jvm]]
-                                  [org.clojure/tools.nrepl "0.2.12"]
                                   [com.cemerick/piggieback "0.2.1"]
                                   [pjstadig/humane-test-output "0.8.0"]
                                   ]
@@ -137,5 +140,4 @@
                                             {:source-paths ["env/prod/cljs"]
                                              :compiler
                                              {:optimizations :advanced
-                                              :pretty-print false
-                                              :source-map true}}}}}})
+                                              :pretty-print false}}}}}})
