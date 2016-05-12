@@ -38,4 +38,4 @@
               (fn [db _]
                 (reaction (get @db :inbox)))) 
 
-(.log js/console "improject.state loaded")
+(.log js/console "improject.state loaded") 

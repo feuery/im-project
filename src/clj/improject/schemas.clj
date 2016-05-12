@@ -26,12 +26,10 @@
                      :sender (-> user-schema
                                  (dissoc :password)
                                  (assoc :sessionid s/Keyword))
+                     :recipient s/Str
                      ;; todo fix this with cljc files if the need to use these schemas client-side arises
                      :date java.util.Date
                      :sent-to [s/Keyword]})
-
-(def enveloped-message-schema {:recipient s/Str
-                               :model message-schema})
   
 (def inbox-schema {s/Str [message-schema]})
 

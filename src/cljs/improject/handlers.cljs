@@ -90,13 +90,15 @@
 (register-handler :load-inbox
                   (fn [db _]
                     (.log js/console ":load-inbox")
-                    (POST "/inbox"
-                          {:params {:username (get-in db [:user-model :username])
-                                    :sessionid (get-in db [:user-model :sessionid])}
-                           :format :url
-                           :handler #(dispatch [:inbox-loaded %])
-                           :error-handler error-handler})
-                    db))
+                    (let [partner-name (get-in db [:conversation-partner :username])] 
+                      (POST "/inbox"
+                            {:params {:username (get-in db [:user-model :username])
+                                      :friend-name partner-name
+                                      :sessionid (get-in db [:user-model :sessionid])}
+                             :format :url
+                             :handler #(dispatch [:inbox-loaded %])
+                             :error-handler error-handler})
+                      db)))
 
 (register-handler :inbox-loaded
                   (fn [db [_ inbox-str]]
@@ -104,7 +106,7 @@
                       (js/setTimeout #(dispatch [:load-inbox]) 1000)
                       (if (nil? (:inbox db))
                         (assoc db :inbox inbox)
-                        (update db :inbox concat inbox)))))
+                        (update db :inbox (comp vec concat) inbox)))))
 
 (register-handler :login
                   (fn [db [_ login-vm]]

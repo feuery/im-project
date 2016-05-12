@@ -16,7 +16,7 @@
             [improject.schemas :refer [sanitized-user-schema
                                        user-schema
                                        login-schema
-                                       enveloped-message-schema
+                                       message-schema
                                        session-user-schema
                                        session-id-schema]]
             [improject.serialization :refer [save-user! get-friends-of!]]
@@ -127,7 +127,8 @@
             (println "(= " user " " username")")
             infernal-error)))
   (POST "/inbox" {{username :username
-                   session-id :sessionid :as params} :params
+                   session-id :sessionid
+                   with-whom :friend-name :as params} :params
                    {session-username :username :as session} :session}
         (let [session-id (-> session-id
                              (str/replace #":" "")
@@ -136,7 +137,8 @@
                    (contains? @session-ids username)
                    (in? (get @session-ids username) session-id))
             (-> success
-                (assoc :body (-> (inbox-of! username session-id session-ids)
+                (assoc :body (-> (inbox-of! username with-whom
+                                            session-id session-ids)
                                  pr-str)))
             (do
               (println "(= username session-username) ? "
@@ -158,17 +160,16 @@
           {username :username :as session} :session}
         (def repl-message model)
         (println "Class of model " (class model))
-        (let [model (-> model
-                        read-string
-                        (assoc :date (.toDate (t/now))
-                               :sent-to []))]
-          (pprint model)
-          (with-validation [_ {:model model
-                               :recipient recipient}
-                            enveloped-message-schema]
-            (send-to! recipient model)
-            (send-to! username model)
-            (assoc success :body "Sending succeeded"))))
+        (with-validation [model
+                          (-> model
+                              read-string
+                              (assoc :date (.toDate (t/now))
+                                     :sent-to []
+                                     :recipient recipient))
+                          message-schema]
+          (send-to! recipient model)
+          (send-to! username (assoc model :recipient username))
+          (assoc success :body "Sending succeeded")))
             
         
 

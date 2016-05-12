@@ -10,9 +10,9 @@
 (def inboxes (atom {}
                    :validator (partial s/validate schemas/inbox-schema)))
 
-(add-watch inboxes :pprinter (fn [_ _ _ new]
-                               (println "Inboxes: ")
-                               (pprint new)))
+;; (add-watch inboxes :pprinter (fn [_ _ _ new]
+;;                                (println "Inboxes: ")
+;;                                (pprint new)))
 
 (defn send-to! [recipient message]
   (when-not (contains? @inboxes recipient)
@@ -23,16 +23,18 @@
   (swap! inboxes update-in [recipient] (comp vec conj) message)
   (swap! inboxes update-in [recipient] (comp vec (partial sort-by :date))))
 
-(defn inbox-of! [whose session-id session-ids-atom]
+(defn inbox-of! [whose conv-partner session-id session-ids-atom]
   (when-let [session-ids (get @session-ids-atom whose)]
     (when (in? session-ids session-id)
       (let [inbox (get @inboxes whose)
-            already-sent (filter #(in? (:sent-to %) session-id) inbox)
+            already-sent (filter #(or (in? (:sent-to %) session-id)
+                                      (not (in? [whose conv-partner] (:recipient %))))
+                                 inbox)
             not-sent (->> inbox
                           (filter (complement (partial in? already-sent)))
                           (sort-by :date)
                           vec)]
-        (println "There's something fishy on the following line")
+        ;; (println "There's something fishy on the following line")
         (swap! inboxes update whose (comp vec
                                           (fn [inbox]
                                             (->> inbox
@@ -42,7 +44,7 @@
                                                           message
                                                           (update message :sent-to conj session-id))))
                                                  vec))))
-        (println "asdmoi")
+        ;; (println "asdmoi")
         (swap! inboxes update whose (comp vec (partial sort-by :date)))
         not-sent))))
 

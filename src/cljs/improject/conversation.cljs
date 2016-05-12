@@ -18,7 +18,8 @@
           italic? :italic
           font :font_name
           name :displayname} :sender
-         date :date} param]
+         date :date
+         recipient :recipient} param]
     [:div
      [:p (str name " said at (" date "): ")]
      [:p {:style {:color color
