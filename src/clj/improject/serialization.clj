@@ -34,7 +34,7 @@ LEFT JOIN font_preference fonts ON fonts.id = u.font_id
 WHERE ((f.username1 = ? OR f.username2 = ?) 
 AND u.username <> ?)"]
     (->> (k/exec-raw [query [username username username]] :results)
-         (map #(dissoc % :id :font_id :admin :can_login))
+         (map #(dissoc % :id :font_id :can_login))
          (map (partial schemas/validate user-schema))
          vec)))
                                 

@@ -10,7 +10,8 @@
                   :username s/Str
                   :italic s/Bool
                   :displayname s/Str
-                  :img_location s/Str})
+                  :img_location s/Str
+                  :admin s/Bool})
 
 (def sanitized-user-schema (-> user-schema
                                (dissoc :password)))

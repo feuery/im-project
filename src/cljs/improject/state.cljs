@@ -36,6 +36,10 @@
 
 (register-sub :conversation
               (fn [db _]
-                (reaction (get @db :inbox)))) 
+                (reaction (get @db :inbox))))
+
+(register-sub :all-users
+              (fn [db _]
+                (reaction (get @db :all-users)))) 
 
 (.log js/console "improject.state loaded") 

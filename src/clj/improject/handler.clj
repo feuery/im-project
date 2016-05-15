@@ -30,7 +30,7 @@
   "Sanitizes user-objects for sending to user. Sanitization consists of removing admin-, can_login-, password-, id- and font_id - flags"
   [u]
   (-> u
-      (dissoc :admin :can_login :id :font_id :password)))
+      (dissoc :can_login :id :font_id :password)))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure where ks is a
@@ -170,6 +170,19 @@
           (send-to! recipient model)
           (send-to! username (assoc model :recipient username))
           (assoc success :body "Sending succeeded")))
+
+  (GET "/users/:username"
+       {{user :username} :params
+        {username :username :as session} :session}
+       (if (= user username)
+         (let [all-users (k/select users)
+               requesters (->> all-users
+                               (filter #(= (:username %) username)))]
+           (if (and (= 1 (count requesters))
+                    (:admin (first requesters)))
+             (assoc success :body (pr-str (vec all-users)))
+             infernal-error))
+         infernal-error))
             
         
 
@@ -209,7 +222,7 @@
                 (with-validation [user (-> users
                                            first
                                            (assoc :sessionid session-id)
-                                           (dissoc :admin :password :can_login
+                                           (dissoc :password :can_login
                                                    :id :font_id))
                                   session-user-schema]
                   (print "Logged in")

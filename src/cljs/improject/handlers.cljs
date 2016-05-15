@@ -159,6 +159,19 @@
                             :handler #(dispatch [:friends-found %])})
                       db)))
 
+(register-handler :get-all-users
+                  (fn [db _]
+                    (when (-> db :user-model :admin)
+                      (GET (str "/users/" (-> db :user-model :username))
+                           {:error-handler error-handler
+                            :handler #(dispatch [:users-arrived %])}))
+                    db))
+
+(register-handler :users-arrived
+                  (fn [db [_ users-str]]
+                    (let [users (read-string users-str)]
+                      (assoc db :all-users users))))
+
 (register-handler :friends-found
                   (fn [db [_ friends-result]]
                     (let [friend-list (or (read-string friends-result) [])]
@@ -171,5 +184,14 @@
                       (.open js/window (str "/sid/" sid "/conversation/" friend-username) "_blank")
                       (.log js/console (str "Opened conversation with " friend-username))
                       db)))
+
+(register-handler :show-admin-gui
+                  (fn [db _]
+                    (if (-> db :user-model :admin)
+                      (assoc db :location :admin-gui)
+                      (do
+                        (.log js/console (str "No admin-gui for non-admins (" (pr-str (:user-model db))")"))
+                        db))))
+
 
 (.log js/console "improject.handlers loaded")

@@ -19,19 +19,19 @@
            :alt (str "Image of " (:displayname friend))}]]
    [:div
    [:h2.friend-name (:displayname friend)]
-   [:p.personal-message (:personal_message friend)]]])
+    [:p.personal-message (:personal_message friend)]]])
 
 (defn main-view []
   (let [friend-list (subscribe [:friend-list])
         user (subscribe [:user-model])]
     (fn []
       (let [toret (->> @friend-list
-                        (map friend-cell)
-                        vec
-                        (into [:div#friend-list]))]
-        ;; (.log js/console (str toret))
-        [:div
-         [:p "You have to allow pop-ups because conversations are opened in their own tabs"]
-         [friend-cell @user :own? true]
-         
-         toret]))))
+                       (map friend-cell)
+                       vec
+                       (into [:div#friend-list]))]
+        [:div         
+         [:div
+          [:p "You have to allow pop-ups because conversations are opened in their own tabs"]
+          [friend-cell @user :own? true]
+          
+          toret]]))))

@@ -10,7 +10,8 @@
               [improject.login :refer [login-view]]
               [improject.registerationform :refer [registeration-form]]
               [improject.main :refer [main-view]]
-              [improject.conversation :refer [conversation-page]]))
+              [improject.conversation :refer [conversation-page]]
+              [improject.admin :refer [admin-view]]))
  
 ;; -------------------------
 ;; Views
@@ -18,9 +19,19 @@
 (defn bugaa [location]
   [:div "Bugaa, location is " (str location)])
 
+(defn nav [admin?]
+  [:nav
+   [:ul
+    [:li [:button {:style {:display (if admin? ;;check on the server side too
+                                      :inline
+                                      :none)}
+                   :on-click #(dispatch [:show-admin-gui])} "Admin tools"]]
+    [:li [:input {:type "text"
+                  :placeholder "Search for friends"}]]]])
+
 (defn initial-view []
-  (let [location (subscribe [:location])]
-    
+  (let [location (subscribe [:location])
+        user (subscribe [:user-model])]    
     (fn []
       [:div 
        [:button#reset {:on-click #(dispatch [:reset-location :main])} "Reset"]
@@ -31,7 +42,13 @@
                    [:h2 "Register"]
                    [registeration-form]
                    [:p "After registration, admins will be notified of your registration. After they have accepted you, you'll be notified and can log in"]]
-        :main [main-view]
+
+        :main [:div
+               [nav (:admin @user)]
+               [main-view]]
+        :admin-gui [:div
+                    [nav (:admin @user)]
+                    [admin-view]]
         [bugaa @location])])))
 
 (defn home-page []
