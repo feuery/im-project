@@ -40,6 +40,11 @@
 
 (register-sub :all-users
               (fn [db _]
-                (reaction (get @db :all-users)))) 
+                (reaction (get @db :all-users))))
+
+(register-sub :filtered-users
+              (fn [db _]
+                (reaction (get @db :filtered-users))))
 
 (.log js/console "improject.state loaded") 
+

@@ -171,6 +171,19 @@
           (send-to! username (assoc model :recipient username))
           (assoc success :body "Sending succeeded")))
 
+  (GET "/users/:username/:filter"
+       {{user :username
+         filter :filter} :params
+         {username :username :as session} :session}
+       (if (= user username)
+         (let [user-set (->> (k/select users
+                                       (k/where (or {:username [like (str "%" filter "%")]}
+                                                    {:displayname [like (str "%" filter "%")]})))
+                             (map sanitize-user)
+                             vec)]
+           (assoc success :body (pr-str user-set)))
+         infernal-error))                             
+
   (GET "/users/:username"
        {{user :username} :params
         {username :username :as session} :session}

@@ -11,7 +11,8 @@
               [improject.registerationform :refer [registeration-form]]
               [improject.main :refer [main-view]]
               [improject.conversation :refer [conversation-page]]
-              [improject.admin :refer [admin-view]]))
+              [improject.admin :refer [admin-view]]
+              [improject.formtools :refer [value-of]]))
  
 ;; -------------------------
 ;; Views
@@ -20,14 +21,29 @@
   [:div "Bugaa, location is " (str location)])
 
 (defn nav [admin?]
-  [:nav
-   [:ul
-    [:li [:button {:style {:display (if admin? ;;check on the server side too
-                                      :inline
-                                      :none)}
-                   :on-click #(dispatch [:show-admin-gui])} "Admin tools"]]
-    [:li [:input {:type "text"
-                  :placeholder "Search for friends"}]]]])
+  (let [filtered-users (subscribe [:filtered-users])]
+    (fn []
+      [:nav
+       [:ul
+        [:li [:button {:style {:display (if admin? ;;check on the server side too
+                                          :inline
+                                          :none)}
+                       :on-click #(dispatch [:show-admin-gui])} "Admin tools"]]
+        [:li [:input {:type "text"
+                      :placeholder "Search for friends"
+                      :on-change #(dispatch [:search-friends (value-of %)])}]]
+        (if (nil? @filtered-users)
+          [:li]
+          (->> @filtered-users
+               (map (fn [u]
+                      [:div.flex
+                       [:img {:style {:width "60px"
+                                      :height "60px"}
+                              :src (:img_location u)}]
+                       [:div (:displayname u)
+                        ;;TODO Add already friend? - check
+                        [:button {:style {:display :block}} "Send friend request"]]]))
+               (into [:li])))]])))
 
 (defn initial-view []
   (let [location (subscribe [:location])

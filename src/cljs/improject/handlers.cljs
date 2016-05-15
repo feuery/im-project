@@ -40,7 +40,7 @@
 (register-handler
  :user-count-status
  (fn [db [_ response]]
-   ;; (js/alert response)
+   ;; (js/alert response) 
    (assoc db :no-users (case response
                          "true" true
                          false))))
@@ -166,6 +166,20 @@
                            {:error-handler error-handler
                             :handler #(dispatch [:users-arrived %])}))
                     db))
+
+(register-handler :search-friends
+                  (fn [db [_ username-filter]]
+                    (if-not (= username-filter "")
+                      (GET (str "/users/" (-> db :user-model :username) "/" username-filter)
+                         {:error-handler error-handler
+                          :handler #(dispatch [:filtered-users-arrived %])})
+                      (dispatch [:filtered-users-arrived "[]"])) ;; "[]" to clear the results with an empty set
+                    db))
+
+(register-handler :filtered-users-arrived
+                  (fn [db [_ users-str]]
+                    (let [users (read-string users-str)]
+                      (assoc db :filtered-users users))))
 
 (register-handler :users-arrived
                   (fn [db [_ users-str]]
