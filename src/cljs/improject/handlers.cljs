@@ -179,7 +179,19 @@
 ;; (register-handler :send-friend-request
 ;;                   (fn [db [_ friend-username]]
 ;;                     (let [username (-> db :user-model :username)]
-                      
+
+(register-handler :get-requests
+                  (fn [db _]
+                    (let [username (-> db :user-model :username)]
+                      (GET (str "/friend-requests/" username)
+                           {:error-handler error-handler
+                            :handler #(dispatch [:got-requests %])})
+                      db)))
+
+(register-handler :got-requests
+                  (fn [db [_ str]]
+                    (let [requests (read-string str)]
+                      (assoc db :requests db))))
 
 (register-handler :filtered-users-arrived
                   (fn [db [_ users-str]]

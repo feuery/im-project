@@ -46,5 +46,9 @@
               (fn [db _]
                 (reaction (get @db :filtered-users))))
 
+(register-sub :requests
+              (fn [db _]
+                (reaction (get @db :requests))))
+
 (.log js/console "improject.state loaded") 
 

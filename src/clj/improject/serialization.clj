@@ -57,3 +57,7 @@ AND u.username <> ? AND f.approved)"]
     (or (in? user1-friends username2)
         (in? user2-friends username1))))
 
+(defn friend-requests! [username]
+  (k/select db/friendship
+            (k/where (and (= :username2 username)
+                          (not :approved)))))
