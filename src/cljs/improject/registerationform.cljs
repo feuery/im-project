@@ -66,6 +66,6 @@
           [:label "Colour"]
           [:input#colour {:type "color"
                           :on-change #(swap! viewstate assoc :color (value-of %))}]]]]
-        [:div "Value of viewstate?" [:br] (pr-str @viewstate)]
+       ;; [:div "Value of viewstate?" [:br] (pr-str @viewstate)]
        [:button {:on-click #(dispatch [:register-user @viewstate])} "Register"]])))
                                  

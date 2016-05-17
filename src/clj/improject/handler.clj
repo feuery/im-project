@@ -303,7 +303,8 @@
                            :as user} ;;destructuring
                           (-> edn
                               read-string
-                              (update-in [:password] sha-512)) ;;parsing the incoming edn
+                              (update-in [:password] sha-512)
+                              (assoc :can_login false :admin false)) ;;parsing the incoming edn
                           user-schema ;;schema
                           ]
           (let [interesting-users (k/select users
@@ -316,7 +317,7 @@
                 (save-user!
                  (if initial-registration?
                    (assoc user :can_login true :admin true)
-                   (assoc user :can_login true :admin false)))
+                   (assoc user :can_login true)))
                 {:status 200
                  :body "true"})
               (throw (Exception. (str "User " username " exists already")))))))
