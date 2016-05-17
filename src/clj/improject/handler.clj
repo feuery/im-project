@@ -316,7 +316,7 @@
                 (save-user!
                  (if initial-registration?
                    (assoc user :can_login true :admin true)
-                   user))
+                   (assoc user :can_login true :admin false)))
                 {:status 200
                  :body "true"})
               (throw (Exception. (str "User " username " exists already")))))))
