@@ -191,7 +191,13 @@
 (register-handler :got-requests
                   (fn [db [_ str]]
                     (let [requests (read-string str)]
-                      (assoc db :requests db))))
+                      (assoc db :requests requests))))
+
+(register-handler :toggle-request-visibility
+                  (fn [{old :show-requests? :as db} _]
+                    (when (nil? old)
+                      (assoc db :show-requests? false))
+                    (update db :show-requests? not)))
 
 (register-handler :filtered-users-arrived
                   (fn [db [_ users-str]]

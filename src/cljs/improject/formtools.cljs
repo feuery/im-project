@@ -11,3 +11,6 @@
 
 (defn set-url [url]
   (-> (.-history js/window) (.pushState {} "" url)))
+
+(defn in? [col val]
+  (some (partial = val) col))

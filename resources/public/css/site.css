@@ -140,3 +140,34 @@ nav {
     left: 0px;
     top: 25%;
 }
+
+header {
+    background-color: #aaaaaa;
+    height: 50px;
+}
+
+#requests {
+    position: absolute;
+    right: 0px;
+    background-color: #CCaaaa;
+    height: 100%;
+}
+
+#requests:hover {
+    background-color: #FFBB00; 
+}
+
+.request-div {
+    position: absolute;
+    right: 0px;
+    list-style-type: none;
+}
+
+.request-div > li {
+    border: 2px solid #aaaaaa;
+    margin-bottom: 4px;
+}
+
+.request-div > * {
+    line-height: 0.3em;
+}

@@ -13,7 +13,7 @@
               [improject.conversation :refer [conversation-page]]
               [improject.admin :refer [admin-view]]
               [improject.friend_search :refer [friend-search]]
-              [improject.formtools :refer [value-of]]))
+              [improject.formtools :refer [value-of in?]]))
  
 ;; -------------------------
 ;; Views
@@ -31,6 +31,40 @@
                      :on-click #(dispatch [:show-admin-gui])} "Admin tools"]]
       [friend-search]]]))
 
+(defn request [{requester :username1 approved :approved}]
+  (let [friend-list (subscribe [:friend-list])]
+    (fn []
+      (if (in? @friend-list requester)
+        [:li]
+        [:li
+         [:h2.friend-name requester]
+         [:p.personal-message " would like to be your friend."]
+         [:button "Click here to accept the request"]]))))
+
+(defn header []
+  (let [requests (subscribe [:requests])
+        show-requests? (subscribe [:show-requests?])]
+    (dispatch [:get-requests])
+    (fn []
+      (let [header-elem
+            [:header
+             [:div#requests
+              {:on-click #(do
+                            (dispatch [:toggle-request-visibility]))}
+              (str (count @requests) " friend requests")]
+             ;; [:p "show-requests? " (if @show-requests? "true" "false")]
+             ]]
+        (if @show-requests?
+          (let [result (->> @requests
+                            (map (fn [r]
+                                   [request r]))
+                            (into [:ul.request-div]))]
+            [:div
+             header-elem
+             result])
+          header-elem)))))
+               
+
 (defn initial-view []
   (let [location (subscribe [:location])
         user (subscribe [:user-model])]    
@@ -46,9 +80,11 @@
                    [:p "After registration, admins will be notified of your registration. After they have accepted you, you'll be notified and can log in"]]
 
         :main [:div
+               [header]
                [nav (:admin @user)]
                [main-view]]
         :admin-gui [:div
+                    [header]
                     [nav (:admin @user)]
                     [admin-view]]
         [bugaa @location])])))

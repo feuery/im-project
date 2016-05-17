@@ -50,5 +50,9 @@
               (fn [db _]
                 (reaction (get @db :requests))))
 
+(register-sub :show-requests?
+              (fn [db _]
+                (reaction (get @db :show-requests?))))
+
 (.log js/console "improject.state loaded") 
 
