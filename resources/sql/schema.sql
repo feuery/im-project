@@ -51,6 +51,11 @@ CREATE TABLE IF NOT EXISTS Friendship (
        FOREIGN KEY(username2) REFERENCES Users(username)
        	       ON UPDATE CASCADE
 	       ON DELETE CASCADE);
+
+IF NOT column_exists('Friendship', 'approved') THEN
+   ALTER TABLE Friendship
+      ADD approved BOOLEAN NOT NULL DEFAULT FALSE;
+END IF;
 	       
 IF NOT EXISTS (SELECT * FROM Font_Preference) THEN
 	INSERT INTO Font_Preference (bold)

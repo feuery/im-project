@@ -12,14 +12,15 @@
             [clojure.pprint :refer [pprint]]
             [schema.core :as schemas]
 
-            [improject.db :refer [users font_preference]]
+            [improject.db :refer [users font_preference friendship]]
             [improject.schemas :refer [sanitized-user-schema
                                        user-schema
                                        login-schema
                                        message-schema
                                        session-user-schema
                                        session-id-schema]]
-            [improject.serialization :refer [save-user! get-friends-of!]]
+            [improject.serialization :refer [save-user! get-friends-of! friends?
+                                             send-friend-request!]]
             [improject.security :refer [sha-512]]
             [improject.inboxes :refer [send-to! in? inbox-of!]]
 
@@ -255,7 +256,18 @@
                 {:status 200
                  :body (pr-str {:success? false
                                 :data ""})})))))
-                 
+
+  (GET "/request-friend/:username/:friend-name"
+       {{username :username
+         friend-name :friend-name} :params
+         {session-username :username} :session}
+       (if (= username session-username)
+         (if-not (friends? username friend-name)
+           (send-friend-request! username friend-name)
+           (do
+             (println "Already friends")
+             infernal-error))
+         infernal-error))
 
   (POST "/register-user" {{edn :edn} :params}        
         (with-validation [{username :username

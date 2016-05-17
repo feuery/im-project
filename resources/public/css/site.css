@@ -129,7 +129,7 @@ header {
     left: 0px;
 }
 
-nav>ul {
+nav>ul, #friend-results {
     list-style-type: none;
     padding: 0;
     margin: 0;

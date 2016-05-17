@@ -12,6 +12,7 @@
               [improject.main :refer [main-view]]
               [improject.conversation :refer [conversation-page]]
               [improject.admin :refer [admin-view]]
+              [improject.friend_search :refer [friend-search]]
               [improject.formtools :refer [value-of]]))
  
 ;; -------------------------
@@ -21,29 +22,14 @@
   [:div "Bugaa, location is " (str location)])
 
 (defn nav [admin?]
-  (let [filtered-users (subscribe [:filtered-users])]
-    (fn []
-      [:nav
-       [:ul
-        [:li [:button {:style {:display (if admin? ;;check on the server side too
-                                          :inline
-                                          :none)}
-                       :on-click #(dispatch [:show-admin-gui])} "Admin tools"]]
-        [:li [:input {:type "text"
-                      :placeholder "Search for friends"
-                      :on-change #(dispatch [:search-friends (value-of %)])}]]
-        (if (nil? @filtered-users)
-          [:li]
-          (->> @filtered-users
-               (map (fn [u]
-                      [:div.flex
-                       [:img {:style {:width "60px"
-                                      :height "60px"}
-                              :src (:img_location u)}]
-                       [:div (:displayname u)
-                        ;;TODO Add already friend? - check
-                        [:button {:style {:display :block}} "Send friend request"]]]))
-               (into [:li])))]])))
+  (fn []
+    [:nav
+     [:ul
+      [:li [:button {:style {:display (if admin? ;;check on the server side too
+                                        :inline
+                                        :none)}
+                     :on-click #(dispatch [:show-admin-gui])} "Admin tools"]]
+      [friend-search]]]))
 
 (defn initial-view []
   (let [location (subscribe [:location])

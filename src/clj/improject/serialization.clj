@@ -26,17 +26,26 @@
                (k/values (assoc user :font_id @font-id))))))
 
 (defn get-friends-of! [username]
-  ;; TODO This should pick also friends whose friend you've been set as
   (let [query "SELECT u.*, fonts.*
 FROM friendship f
 LEFT JOIN users u ON f.username1 = u.username OR f.username2 = u.username
 LEFT JOIN font_preference fonts ON fonts.id = u.font_id
 WHERE ((f.username1 = ? OR f.username2 = ?) 
-AND u.username <> ?)"]
+AND u.username <> ? AND f.approved)"]
     (->> (k/exec-raw [query [username username username]] :results)
          (map #(dissoc % :id :font_id :can_login))
          (map (partial schemas/validate user-schema))
          vec)))
+
+(defn approve-request! [requester approver]
+  (k/update db/friendship
+            (k/set-fields {:approved true})
+            (k/where (and (= (:username1 requester))
+                          (= (:username2 approver))))))                             
+
+(defn send-friend-request! [username1 username2] ;;u2 is the approver
+  (k/insert db/friendship
+            (k/values {:username1 username1 :username2 username2 :approved false})))
                                 
 
 (defn in? [seq val]
@@ -47,14 +56,4 @@ AND u.username <> ?)"]
         user2-friends (get-friends-of! username2)]
     (or (in? user1-friends username2)
         (in? user2-friends username1))))
-
-(defn make-friends! [username1 username2]
-  (if (= 2
-         (count 
-          (k/select db/users
-                    (k/where (or (= :username username1)
-                                 (= :username username2))))))
-    (if-not (friends? username1 username2)
-      (k/insert db/friendship
-                (k/values {:username1 username1 :username2 username2})))))
 

@@ -176,6 +176,11 @@
                       (dispatch [:filtered-users-arrived "[]"])) ;; "[]" to clear the results with an empty set
                     db))
 
+;; (register-handler :send-friend-request
+;;                   (fn [db [_ friend-username]]
+;;                     (let [username (-> db :user-model :username)]
+                      
+
 (register-handler :filtered-users-arrived
                   (fn [db [_ users-str]]
                     (let [users (read-string users-str)]
