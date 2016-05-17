@@ -43,6 +43,11 @@ AND u.username <> ? AND f.approved)"]
             (k/where (and (= :username1 requester)
                           (= :username2 approver)))))
 
+(defn remove-request! [requester approver]
+  (k/delete db/friendship
+            (k/where (and (= :username1 requester)
+                          (= :username2 approver)))))
+
 (defn send-friend-request! [username1 username2] ;;u2 is the approver
   (k/insert db/friendship
             (k/values {:username1 username1 :username2 username2 :approved false})))

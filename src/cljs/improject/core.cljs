@@ -39,8 +39,10 @@
         [:li
          [:h2.friend-name requester]
          [:p.personal-message " would like to be your friend."]
-         [:button {:on-click #(dispatch [:make-friend requester])}
-          "Click here to accept the request"]]))))
+         [:button.accept-rq {:on-click #(dispatch [:make-friend requester])}
+          "Accept request"]
+         [:button {:on-click #(dispatch [:remove-request requester])}
+          "Remove request"]]))))
 
 (defn header []
   (let [requests (subscribe [:requests])

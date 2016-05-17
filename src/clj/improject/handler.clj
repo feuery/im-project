@@ -21,7 +21,7 @@
                                        session-id-schema]]
             [improject.serialization :refer [save-user! get-friends-of! friends?
                                              send-friend-request! friend-requests!
-                                             approve-request!]]
+                                             remove-request! approve-request!]]
             [improject.security :refer [sha-512]]
             [improject.inboxes :refer [send-to! in? inbox-of!]]
 
@@ -287,7 +287,16 @@
            (approve-request! friend username)
            (assoc success :body "success"))
          infernal-error))
-       
+
+  (GET "/remove-request/:username/:friend-name"
+       {{username :username
+         friend :friend-name} :params
+        {session-username :username} :session}
+       (if (= session-username username)
+         (do
+           (remove-request! friend username)
+           (assoc success :body "success"))
+         infernal-error))       
        
   (POST "/register-user" {{edn :edn} :params}        
         (with-validation [{username :username

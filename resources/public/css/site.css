@@ -171,3 +171,8 @@ header {
 .request-div > * {
     line-height: 0.3em;
 }
+
+.accept-rq {
+    /* margin-bottom: 20px; */
+    /* display: block; */
+}

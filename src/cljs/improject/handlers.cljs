@@ -176,9 +176,13 @@
                       (dispatch [:filtered-users-arrived "[]"])) ;; "[]" to clear the results with an empty set
                     db))
 
-;; (register-handler :send-friend-request
-;;                   (fn [db [_ friend-username]]
-;;                     (let [username (-> db :user-model :username)]
+ (register-handler :send-friend-request
+                   (fn [db [_ friend-username]]
+                     (let [username (-> db :user-model :username)]
+                       (GET (str "/request-friend/" username "/" friend-username)
+                            {:error-handler error-handler
+                             :handler #(js/alert "Friend request sent!")})
+                       db)))
 
 (register-handler :make-friend
                   (fn [db [_ friend-name]]
@@ -188,6 +192,14 @@
                             :handler #(do
                                         (dispatch [:find-friends])
                                         (dispatch [:get-requests]))})
+                      db)))
+
+(register-handler :remove-request
+                  (fn [db [_ requester]]
+                    (let [username (-> db :user-model :username)]
+                      (GET (str "/remove-request/" username "/" requester)
+                           {:error-handler error-handler
+                            :handler #(dispatch [:get-requests])})
                       db)))
 
 (register-handler :get-requests
