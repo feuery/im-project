@@ -180,6 +180,16 @@
 ;;                   (fn [db [_ friend-username]]
 ;;                     (let [username (-> db :user-model :username)]
 
+(register-handler :make-friend
+                  (fn [db [_ friend-name]]
+                    (let [username (-> db :user-model :username)]
+                      (GET (str "/approve-friend/" username "/" friend-name)
+                           {:error-handler error-handler
+                            :handler #(do
+                                        (dispatch [:find-friends])
+                                        (dispatch [:get-requests]))})
+                      db)))
+
 (register-handler :get-requests
                   (fn [db _]
                     (let [username (-> db :user-model :username)]

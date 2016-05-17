@@ -40,8 +40,8 @@ AND u.username <> ? AND f.approved)"]
 (defn approve-request! [requester approver]
   (k/update db/friendship
             (k/set-fields {:approved true})
-            (k/where (and (= (:username1 requester))
-                          (= (:username2 approver))))))                             
+            (k/where (and (= :username1 requester)
+                          (= :username2 approver)))))
 
 (defn send-friend-request! [username1 username2] ;;u2 is the approver
   (k/insert db/friendship
