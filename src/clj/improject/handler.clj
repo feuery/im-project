@@ -304,7 +304,7 @@
                           (-> edn
                               read-string
                               (update-in [:password] sha-512)
-                              (assoc :can_login false :admin false)) ;;parsing the incoming edn
+                              (assoc :admin false)) ;;parsing the incoming edn
                           user-schema ;;schema
                           ]
           (let [interesting-users (k/select users
