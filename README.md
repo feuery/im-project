@@ -12,4 +12,4 @@ After learning everything I currently know, I knew IM hooked to Emacs would be g
 I let it rot for a couple of years in this repo. Now as an exercise to learn cljs I rewrote it, server with a less shitty api/architecture and client with ClojureScript instead of seesaw. Seesaw client miiiight follow if this gains traction. It's easier to script localhost when outside of the browser's sandbox. Also Emacs client is a possibility if I ever want to learn enough elisp.
 
 ##Where is this?
-[http://mese-test.herokuapp.com](http://mese-test.herokuapp.com). I don't think you can yet register there. I'll post on the blog when it's possible.
+[http://mese-test.herokuapp.com](http://mese-test.herokuapp.com). You can register and log in there. It's still in-dev, thus finer details like editing your displayname after registration aren't yet implemented. I can be found there by the name of 'feuer'.

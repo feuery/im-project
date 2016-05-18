@@ -32,6 +32,7 @@
         [:div         
          [:div
           [:p "You have to allow pop-ups because conversations are opened in their own tabs"]
+          [:p "Real time notifications aren't yet implemented. Thus you have to keep conversation windows open to see if there's happened anything"]
           [friend-cell @user :own? true]
           
           toret]]))))
