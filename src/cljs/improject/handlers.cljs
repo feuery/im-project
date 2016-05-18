@@ -213,6 +213,7 @@
 (register-handler :got-requests
                   (fn [db [_ str]]
                     (let [requests (read-string str)]
+                      (js/setTimeout #(dispatch [:get-requests]) (* 10 1000))
                       (assoc db :requests requests))))
 
 (register-handler :toggle-request-visibility
@@ -235,6 +236,7 @@
                   (fn [db [_ friends-result]]
                     (let [friend-list (or (read-string friends-result) [])]
                       (.log js/console (str "Found friends: " friend-list))
+                      (js/setTimeout #(dispatch [:find-friends]) (* 20 1000))
                       (assoc db :friend-list friend-list))))
 
 (register-handler :open-conv
